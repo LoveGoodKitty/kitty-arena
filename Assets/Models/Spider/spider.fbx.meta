@@ -1,0 +1,692 @@
+fileFormatVersion: 2
+guid: 33a1643611117d4449268ddf7b5623bf
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: creature/bonespider/bonespider
+    100002: creature/bonespider/bonespider 1
+    100004: creature/bonespider/bonespider_bone_0
+    100006: creature/bonespider/bonespider_bone_1
+    100008: creature/bonespider/bonespider_bone_10
+    100010: creature/bonespider/bonespider_bone_11
+    100012: creature/bonespider/bonespider_bone_12
+    100014: creature/bonespider/bonespider_bone_13
+    100016: creature/bonespider/bonespider_bone_14
+    100018: creature/bonespider/bonespider_bone_15
+    100020: creature/bonespider/bonespider_bone_16
+    100022: creature/bonespider/bonespider_bone_17
+    100024: creature/bonespider/bonespider_bone_18
+    100026: creature/bonespider/bonespider_bone_19
+    100028: creature/bonespider/bonespider_bone_2
+    100030: creature/bonespider/bonespider_bone_20
+    100032: creature/bonespider/bonespider_bone_21
+    100034: creature/bonespider/bonespider_bone_22
+    100036: creature/bonespider/bonespider_bone_23
+    100038: creature/bonespider/bonespider_bone_24
+    100040: creature/bonespider/bonespider_bone_25
+    100042: creature/bonespider/bonespider_bone_26
+    100044: creature/bonespider/bonespider_bone_27
+    100046: creature/bonespider/bonespider_bone_28
+    100048: creature/bonespider/bonespider_bone_29
+    100050: creature/bonespider/bonespider_bone_3
+    100052: creature/bonespider/bonespider_bone_30
+    100054: creature/bonespider/bonespider_bone_31
+    100056: creature/bonespider/bonespider_bone_32
+    100058: creature/bonespider/bonespider_bone_33
+    100060: creature/bonespider/bonespider_bone_34
+    100062: creature/bonespider/bonespider_bone_35
+    100064: creature/bonespider/bonespider_bone_36
+    100066: creature/bonespider/bonespider_bone_37
+    100068: creature/bonespider/bonespider_bone_38
+    100070: creature/bonespider/bonespider_bone_39
+    100072: creature/bonespider/bonespider_bone_4
+    100074: creature/bonespider/bonespider_bone_40
+    100076: creature/bonespider/bonespider_bone_41
+    100078: creature/bonespider/bonespider_bone_42
+    100080: creature/bonespider/bonespider_bone_43
+    100082: creature/bonespider/bonespider_bone_44
+    100084: creature/bonespider/bonespider_bone_45
+    100086: creature/bonespider/bonespider_bone_46
+    100088: creature/bonespider/bonespider_bone_47
+    100090: creature/bonespider/bonespider_bone_48
+    100092: creature/bonespider/bonespider_bone_49
+    100094: creature/bonespider/bonespider_bone_5
+    100096: creature/bonespider/bonespider_bone_50
+    100098: creature/bonespider/bonespider_bone_51
+    100100: creature/bonespider/bonespider_bone_52
+    100102: creature/bonespider/bonespider_bone_53
+    100104: creature/bonespider/bonespider_bone_54
+    100106: creature/bonespider/bonespider_bone_55
+    100108: creature/bonespider/bonespider_bone_56
+    100110: creature/bonespider/bonespider_bone_57
+    100112: creature/bonespider/bonespider_bone_58
+    100114: creature/bonespider/bonespider_bone_59
+    100116: creature/bonespider/bonespider_bone_6
+    100118: creature/bonespider/bonespider_bone_60
+    100120: creature/bonespider/bonespider_bone_61
+    100122: creature/bonespider/bonespider_bone_62
+    100124: creature/bonespider/bonespider_bone_63
+    100126: creature/bonespider/bonespider_bone_64
+    100128: creature/bonespider/bonespider_bone_65
+    100130: creature/bonespider/bonespider_bone_66
+    100132: creature/bonespider/bonespider_bone_67
+    100134: creature/bonespider/bonespider_bone_68
+    100136: creature/bonespider/bonespider_bone_69
+    100138: creature/bonespider/bonespider_bone_7
+    100140: creature/bonespider/bonespider_bone_70
+    100142: creature/bonespider/bonespider_bone_71
+    100144: creature/bonespider/bonespider_bone_72
+    100146: creature/bonespider/bonespider_bone_73
+    100148: creature/bonespider/bonespider_bone_74
+    100150: creature/bonespider/bonespider_bone_75
+    100152: creature/bonespider/bonespider_bone_76
+    100154: creature/bonespider/bonespider_bone_77
+    100156: creature/bonespider/bonespider_bone_78
+    100158: creature/bonespider/bonespider_bone_79
+    100160: creature/bonespider/bonespider_bone_8
+    100162: creature/bonespider/bonespider_bone_80
+    100164: creature/bonespider/bonespider_bone_81
+    100166: creature/bonespider/bonespider_bone_82
+    100168: creature/bonespider/bonespider_bone_83
+    100170: creature/bonespider/bonespider_bone_84
+    100172: creature/bonespider/bonespider_bone_85
+    100174: creature/bonespider/bonespider_bone_9
+    100176: //RootNode
+    400000: creature/bonespider/bonespider
+    400002: creature/bonespider/bonespider 1
+    400004: creature/bonespider/bonespider_bone_0
+    400006: creature/bonespider/bonespider_bone_1
+    400008: creature/bonespider/bonespider_bone_10
+    400010: creature/bonespider/bonespider_bone_11
+    400012: creature/bonespider/bonespider_bone_12
+    400014: creature/bonespider/bonespider_bone_13
+    400016: creature/bonespider/bonespider_bone_14
+    400018: creature/bonespider/bonespider_bone_15
+    400020: creature/bonespider/bonespider_bone_16
+    400022: creature/bonespider/bonespider_bone_17
+    400024: creature/bonespider/bonespider_bone_18
+    400026: creature/bonespider/bonespider_bone_19
+    400028: creature/bonespider/bonespider_bone_2
+    400030: creature/bonespider/bonespider_bone_20
+    400032: creature/bonespider/bonespider_bone_21
+    400034: creature/bonespider/bonespider_bone_22
+    400036: creature/bonespider/bonespider_bone_23
+    400038: creature/bonespider/bonespider_bone_24
+    400040: creature/bonespider/bonespider_bone_25
+    400042: creature/bonespider/bonespider_bone_26
+    400044: creature/bonespider/bonespider_bone_27
+    400046: creature/bonespider/bonespider_bone_28
+    400048: creature/bonespider/bonespider_bone_29
+    400050: creature/bonespider/bonespider_bone_3
+    400052: creature/bonespider/bonespider_bone_30
+    400054: creature/bonespider/bonespider_bone_31
+    400056: creature/bonespider/bonespider_bone_32
+    400058: creature/bonespider/bonespider_bone_33
+    400060: creature/bonespider/bonespider_bone_34
+    400062: creature/bonespider/bonespider_bone_35
+    400064: creature/bonespider/bonespider_bone_36
+    400066: creature/bonespider/bonespider_bone_37
+    400068: creature/bonespider/bonespider_bone_38
+    400070: creature/bonespider/bonespider_bone_39
+    400072: creature/bonespider/bonespider_bone_4
+    400074: creature/bonespider/bonespider_bone_40
+    400076: creature/bonespider/bonespider_bone_41
+    400078: creature/bonespider/bonespider_bone_42
+    400080: creature/bonespider/bonespider_bone_43
+    400082: creature/bonespider/bonespider_bone_44
+    400084: creature/bonespider/bonespider_bone_45
+    400086: creature/bonespider/bonespider_bone_46
+    400088: creature/bonespider/bonespider_bone_47
+    400090: creature/bonespider/bonespider_bone_48
+    400092: creature/bonespider/bonespider_bone_49
+    400094: creature/bonespider/bonespider_bone_5
+    400096: creature/bonespider/bonespider_bone_50
+    400098: creature/bonespider/bonespider_bone_51
+    400100: creature/bonespider/bonespider_bone_52
+    400102: creature/bonespider/bonespider_bone_53
+    400104: creature/bonespider/bonespider_bone_54
+    400106: creature/bonespider/bonespider_bone_55
+    400108: creature/bonespider/bonespider_bone_56
+    400110: creature/bonespider/bonespider_bone_57
+    400112: creature/bonespider/bonespider_bone_58
+    400114: creature/bonespider/bonespider_bone_59
+    400116: creature/bonespider/bonespider_bone_6
+    400118: creature/bonespider/bonespider_bone_60
+    400120: creature/bonespider/bonespider_bone_61
+    400122: creature/bonespider/bonespider_bone_62
+    400124: creature/bonespider/bonespider_bone_63
+    400126: creature/bonespider/bonespider_bone_64
+    400128: creature/bonespider/bonespider_bone_65
+    400130: creature/bonespider/bonespider_bone_66
+    400132: creature/bonespider/bonespider_bone_67
+    400134: creature/bonespider/bonespider_bone_68
+    400136: creature/bonespider/bonespider_bone_69
+    400138: creature/bonespider/bonespider_bone_7
+    400140: creature/bonespider/bonespider_bone_70
+    400142: creature/bonespider/bonespider_bone_71
+    400144: creature/bonespider/bonespider_bone_72
+    400146: creature/bonespider/bonespider_bone_73
+    400148: creature/bonespider/bonespider_bone_74
+    400150: creature/bonespider/bonespider_bone_75
+    400152: creature/bonespider/bonespider_bone_76
+    400154: creature/bonespider/bonespider_bone_77
+    400156: creature/bonespider/bonespider_bone_78
+    400158: creature/bonespider/bonespider_bone_79
+    400160: creature/bonespider/bonespider_bone_8
+    400162: creature/bonespider/bonespider_bone_80
+    400164: creature/bonespider/bonespider_bone_81
+    400166: creature/bonespider/bonespider_bone_82
+    400168: creature/bonespider/bonespider_bone_83
+    400170: creature/bonespider/bonespider_bone_84
+    400172: creature/bonespider/bonespider_bone_85
+    400174: creature/bonespider/bonespider_bone_9
+    400176: //RootNode
+    2100000: creature_bonespider_bonespider_0
+    2100002: creature_bonespider_bonespider_1
+    4300000: creature/bonespider/bonespider
+    7400000: Walk [0]
+    7400002: Run [1]
+    7400004: Stand [2]
+    7400006: AttackUnarmed [3]
+    7400008: AttackUnarmed [4]
+    7400010: CombatWound [5]
+    7400012: Death [6]
+    7400014: SpellCast [7]
+    7400016: Stand [8]
+    7400018: Stand [9]
+    7400020: SwimIdle [10]
+    7400022: Swim [11]
+    7400024: Drown [12]
+    7400026: Drowned [13]
+    9500000: //RootNode
+    13700000: creature/bonespider/bonespider
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: creature_bonespider_bonespider_0
+    second: {fileID: 2100000, guid: 9f59a3d14b61e7742a7a636ca937aa37, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: creature_bonespider_bonespider_1
+    second: {fileID: 2100000, guid: b07a5c8e3a4bcad49b73d8331c072d9e, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: bonespider_black
+    second: {fileID: 2800000, guid: 1f1859876437bb241b8a7c508cfbb74d, type: 3}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Walk [0]
+      takeName: Walk [0]
+      firstFrame: 0
+      lastFrame: 20
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Run [1]
+      takeName: Run [1]
+      firstFrame: 0
+      lastFrame: 20
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Stand [2]
+      takeName: Stand [2]
+      firstFrame: 0
+      lastFrame: 49
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: AttackUnarmed [3]
+      takeName: AttackUnarmed [3]
+      firstFrame: 0
+      lastFrame: 49
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: AttackUnarmed [4]
+      takeName: AttackUnarmed [4]
+      firstFrame: 0
+      lastFrame: 49
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: CombatWound [5]
+      takeName: CombatWound [5]
+      firstFrame: 0
+      lastFrame: 49
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Death [6]
+      takeName: Death [6]
+      firstFrame: 0
+      lastFrame: 49
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: SpellCast [7]
+      takeName: SpellCast [7]
+      firstFrame: 0
+      lastFrame: 49
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Stand [8]
+      takeName: Stand [8]
+      firstFrame: 0
+      lastFrame: 99
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Stand [9]
+      takeName: Stand [9]
+      firstFrame: 0
+      lastFrame: 99
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: SwimIdle [10]
+      takeName: SwimIdle [10]
+      firstFrame: 0
+      lastFrame: 99
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Swim [11]
+      takeName: Swim [11]
+      firstFrame: 0
+      lastFrame: 99
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Drown [12]
+      takeName: Drown [12]
+      firstFrame: 0
+      lastFrame: 99
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Drowned [13]
+      takeName: Drowned [13]
+      firstFrame: 0
+      lastFrame: 99
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

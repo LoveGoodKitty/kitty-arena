@@ -1,0 +1,49 @@
+﻿//
+// Unityちゃん用の三人称カメラ
+// 
+// 2013/06/07 N.Kobyasahi
+//
+using UnityEngine;
+using System.Collections;
+
+
+public class ThirdPersonCamera : MonoBehaviour
+{
+    private float zoom = 1.75f;
+    private float zoomStep = 0.125f;
+
+    private Vector3 lookTarget = Vector3.zero;
+
+    private GameObject target = null;
+
+    private float followSpeed = 7.0f;
+
+	void Start()
+	{
+        target = GameObject.FindWithTag("Player");
+    }
+
+    private void Update()
+    {
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+
+        if (scroll < 0.0f)
+            zoom += zoomStep;
+        else if (scroll > 0.0f)
+            zoom -= zoomStep;
+
+        var positionNow = transform.position;
+        var targetPosition = (target.transform.position + new Vector3(0.0f, 1.0f, 0.0f)) + (new Vector3(0.0f, 9.0f, -6.0f) * zoom);
+
+        transform.position = Vector3.Lerp(positionNow, targetPosition, Time.deltaTime * followSpeed);
+
+        lookTarget = Vector3.Lerp(lookTarget, target.transform.position, Time.deltaTime * followSpeed);
+        transform.LookAt(lookTarget);
+    }
+
+    void FixedUpdate()
+	{
+
+    }
+
+}

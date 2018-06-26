@@ -1,0 +1,9 @@
+C:\Users\Kitty\KittyArena\KittyArena\Assets\Plugins\GameClassLibrary\netstandard2.0\GameClassLibrary.deps.json
+C:\Users\Kitty\KittyArena\KittyArena\Assets\Plugins\GameClassLibrary\netstandard2.0\GameClassLibrary.dll
+C:\Users\Kitty\KittyArena\KittyArena\Assets\Plugins\GameClassLibrary\netstandard2.0\GameClassLibrary.pdb
+C:\Users\Kitty\KittyArena\Assets\Plugins\GameClassLibrary\netstandard2.0\GameClassLibrary.deps.json
+C:\Users\Kitty\KittyArena\Assets\Plugins\GameClassLibrary\netstandard2.0\GameClassLibrary.dll
+C:\Users\Kitty\KittyArena\Assets\Plugins\GameClassLibrary\netstandard2.0\GameClassLibrary.pdb
+C:\Users\Kitty\KittyArena\GameClassLibrary\obj\Debug\netstandard2.0\GameClassLibrary.fsprojAssemblyReference.cache
+C:\Users\Kitty\KittyArena\GameClassLibrary\obj\Debug\netstandard2.0\GameClassLibrary.dll
+C:\Users\Kitty\KittyArena\GameClassLibrary\obj\Debug\netstandard2.0\GameClassLibrary.pdb
