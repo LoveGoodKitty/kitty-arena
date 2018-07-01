@@ -380,8 +380,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4736501292513668}
   - component: {fileID: 95396420120519706}
-  - component: {fileID: 54465188250939542}
-  - component: {fileID: 136363499398115288}
   m_Layer: 0
   m_Name: GirlPrefab
   m_TagString: Player
@@ -1973,21 +1971,6 @@ Transform:
   m_Father: {fileID: 4610989983165572}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &54465188250939542
-Rigidbody:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1445852424807042}
-  serializedVersion: 2
-  m_Mass: 0.0000001
-  m_Drag: 0
-  m_AngularDrag: 0
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 116
-  m_CollisionDetection: 1
 --- !u!95 &95396420120519706
 Animator:
   serializedVersion: 3
@@ -2006,19 +1989,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!136 &136363499398115288
-CapsuleCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1445852424807042}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 1, z: 0}
 --- !u!137 &137454061843045090
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1

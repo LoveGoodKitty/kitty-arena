@@ -232,9 +232,14 @@ public class CharacterControl : MonoBehaviour
                 moveDuration += t;
 
                 var distanceTraveled = Vector3.Distance(transform.position, moveStartPosition);
+
+
                 if (distanceTraveled >= moveDistance - 0.1f)
                 {
                     //transform.position = moveDestination;
+
+
+
                     velocity = Vector3.zero;
                     moveDuration = 0.0f;
                     moving = false;
@@ -255,8 +260,6 @@ public class CharacterControl : MonoBehaviour
         animator.SetFloat("Speed", speed * (animationRunDuration / 4.0f));
         animator.SetBool("Rest", !moving);
     }
-
-   
 
     void FixedUpdate ()
     {
