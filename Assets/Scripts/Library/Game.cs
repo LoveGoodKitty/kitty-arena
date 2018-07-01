@@ -88,26 +88,35 @@ namespace GameClassLibrary
         public int PlayerId = -1;
         public float Mana = 100.0f;
 
-        public Character()
+        public Character(int playerId)
         {
-
+            PlayerId = playerId;
         }
     }
 
     class GameState
     {
         public float Time;
-        public List<Character> Characters;
+        public Dictionary<int, Character> Characters;
+
+        private int entityCounter;
+
+        public int GetNewEntityId()
+        {
+            entityCounter = entityCounter + 1;
+            return entityCounter;
+        }
 
         public GameState()
         {
-            Characters = new List<Character>();
+            entityCounter = -1;
+            Characters = new Dictionary<int, Character>();
             Time = 0.0f;
         }
 
         public void Update(float elapsed)
         {
-            foreach (var character in Characters)
+            foreach (var character in Characters.Values)
             {
                 character.UpdateMovement(elapsed);
             }
@@ -119,11 +128,16 @@ namespace GameClassLibrary
         public GameState gameState;
         private DrawableManager drawableManager;
         private List<object> inputCommands;
+        public int LocalPlayerID;
 
         public GameMode()
         {
             gameState = new GameState();
-            gameState.Characters.Add(new Character());
+
+            var localCharacter = new Character(gameState.GetNewEntityId());
+            gameState.Characters.Add(localCharacter.PlayerId, localCharacter);
+
+            LocalPlayerID = localCharacter.PlayerId;
 
             drawableManager = new DrawableManager();
             inputCommands = new List<object>();
@@ -137,7 +151,7 @@ namespace GameClassLibrary
                 {
                     var move = new PlayerMove();
                     move.Destination = hit.point;
-                    move.PlayerId = 0;
+                    move.PlayerId = LocalPlayerID;
                     move.Frame = 0;
 
                     inputCommands.Add(move);
@@ -147,6 +161,16 @@ namespace GameClassLibrary
             if (Input.GetKeyDown(KeyCode.W))
             {
                 inputCommands.Add(new PlayerAbility());
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                LocalPlayerID = Math.Max(0, LocalPlayerID - 1);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                LocalPlayerID = Math.Min(gameState.Characters.Count - 1, LocalPlayerID + 1);
             }
         }
 
@@ -173,7 +197,8 @@ namespace GameClassLibrary
                         player.Move(o.Destination);
                         break;
                     case PlayerAbility o:
-                        //gameState.Characters.Add(new Character());
+                        var newCharacter = new Character(gameState.GetNewEntityId());
+                        gameState.Characters.Add(newCharacter.PlayerId, newCharacter);
                         break;
                     default:
                         Debug.LogError("Unsupported command");
@@ -185,7 +210,7 @@ namespace GameClassLibrary
 
             gameState.Update(elapsed);
 
-            drawableManager.Update(gameState);
+            drawableManager.Update(gameState, this);
         }
 
     }
@@ -259,11 +284,11 @@ namespace GameClassLibrary
             drawables = new Dictionary<int, IDrawableObject>();
         }
 
-        public void Update(GameState state)
+        public void Update(GameState state, GameMode mode)
         {
             void setCameraToObject(IDrawableObject target)
             {
-                if (GraphicsResources.Camera != null)
+                if (target != null && GraphicsResources.Camera != null)
                 {
                     var o = target.GetObject();
                     if (o != null)
@@ -273,22 +298,25 @@ namespace GameClassLibrary
                 }
             }
 
-            foreach (var player in state.Characters)
+            foreach (var character in state.Characters.Values)
             {
-                if (drawables.TryGetValue(player.PlayerId, out IDrawableObject drawableObject))
+                if (drawables.TryGetValue(character.PlayerId, out IDrawableObject drawableObject))
                 {
                     drawableObject.Update();
-                    setCameraToObject(drawableObject);
                 }
                 else
                 {
-                    var newDrawableObject = new CharacterDrawable(player);
-                    drawables.Add(player.PlayerId, newDrawableObject);
+                    var newDrawableObject = new CharacterDrawable(character);
+                    drawables.Add(character.PlayerId, newDrawableObject);
 
                     newDrawableObject.Update();
-                    setCameraToObject(newDrawableObject);
 
                 }
+            }
+
+            if (drawables.TryGetValue(mode.LocalPlayerID, out IDrawableObject playerTarget))
+            {
+                setCameraToObject(playerTarget);
             }
 
 
