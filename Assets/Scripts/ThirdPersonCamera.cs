@@ -18,13 +18,24 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private float followSpeed = 7.0f;
 
+    public Vector3 TargetPosition;
+
 	void Start()
 	{
         target = GameObject.FindWithTag("Player");
     }
 
+    public void SetTarget(GameObject target)
+    {
+        this.target = target;
+    }
+
     private void Update()
     {
+        Vector3 lookAt = TargetPosition;
+        if (target != null)
+            lookAt = target.transform.position;
+
         float scroll = Input.GetAxis("Mouse ScrollWheel");
 
         if (scroll < 0.0f)
@@ -33,11 +44,11 @@ public class ThirdPersonCamera : MonoBehaviour
             zoom -= zoomStep;
 
         var positionNow = transform.position;
-        var targetPosition = (target.transform.position + new Vector3(0.0f, 1.0f, 0.0f)) + (new Vector3(0.0f, 9.0f, -6.0f) * zoom);
+        var targetPosition = (lookAt + new Vector3(0.0f, 1.0f, 0.0f)) + (new Vector3(0.0f, 9.0f, -6.0f) * zoom);
 
         transform.position = Vector3.Lerp(positionNow, targetPosition, Time.deltaTime * followSpeed);
 
-        lookTarget = Vector3.Lerp(lookTarget, target.transform.position, Time.deltaTime * followSpeed);
+        lookTarget = Vector3.Lerp(lookTarget, lookAt, Time.deltaTime * followSpeed);
         transform.LookAt(lookTarget);
     }
 

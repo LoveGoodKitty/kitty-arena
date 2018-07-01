@@ -8,13 +8,28 @@ using UnityEngine;
 using System.Collections;
 using GameClassLibrary;
 
-
 public class GameModeController : MonoBehaviour
 {
+    private GameMode gameMode;
+
+    public GameModeController()
+    {
+        gameMode = new GameMode();
+    }
+
     public void Start()
     {
+        GraphicsResources.LoadResources();
+    }
 
-        this.gameObject.AddComponent(typeof(GameClassLibrary.Libray.UnityGameLink));
+    private void Update()
+    {
+        gameMode.Update(Time.deltaTime);
+    }
+
+    private void OnGUI()
+    {
+        GUI.Label(new Rect(10, 10, 100, 20), (Time.deltaTime * 1000.0f).ToString("0.ms"));
     }
 }
 

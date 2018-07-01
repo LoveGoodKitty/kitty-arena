@@ -47,7 +47,7 @@ public class CharacterControl : MonoBehaviour
 
     private float forwardSpeed = 1.0f;
     private float backwardSpeed = 1.0f;
-    private float rotationSpeed = 6.0f;
+    private float rotationSpeed = 12.0f;
 
     private float speed = 5.0f;
     private float castSpeed =  1.4f;
@@ -277,6 +277,7 @@ public class CharacterControl : MonoBehaviour
             //Debug.Log("Interacted with " + objectHit.name);
 
             interactPoint = interactHit.point;
+            
 
             moveDirection = Vector3.Normalize(interactPoint - transform.position);
             moveDirection.y = 0.0f;
