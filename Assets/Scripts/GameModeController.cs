@@ -40,7 +40,8 @@ public class GameModeController : MonoBehaviour
 
     private void OnGUI()
     {
-        GUI.Label(new Rect(10, 10, 100, 20), (Time.deltaTime * 1000.0f).ToString("0.ms"));
+        GUI.Label(new Rect(10, 10, 100, 20), (Time.deltaTime * 1000.0f).ToString("00.00ms"));
+        GUI.Label(new Rect(10, 30, 100, 20), (gameMode.UpdateTime * 1000.0f).ToString("00.00ms"));
     }
 }
 

@@ -46,9 +46,19 @@ public class ThirdPersonCamera : MonoBehaviour
         var positionNow = transform.position;
         var targetPosition = (lookAt + new Vector3(0.0f, 1.0f, 0.0f)) + (new Vector3(0.0f, 9.0f, -6.0f) * zoom);
 
-        transform.position = Vector3.Lerp(positionNow, targetPosition, Time.deltaTime * followSpeed);
+        // smooth camera causes problems with player movement commands making character go back and forth... 
+        var smoothCamera = false;
+        if (smoothCamera)
+        {
+            transform.position = Vector3.Lerp(positionNow, targetPosition, Time.deltaTime * followSpeed);
+            lookTarget = Vector3.Lerp(lookTarget, lookAt, Time.deltaTime * followSpeed);
+        }
+        else
+        {
+            transform.position = targetPosition;
+            lookTarget = lookAt;
+        }
 
-        lookTarget = Vector3.Lerp(lookTarget, lookAt, Time.deltaTime * followSpeed);
         transform.LookAt(lookTarget);
     }
 

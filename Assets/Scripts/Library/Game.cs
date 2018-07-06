@@ -45,7 +45,10 @@ namespace GameClassLibrary
 
         private float distance;
         private float timeMoving;
-        private float speed;
+
+        public float Speed;
+
+        private float RotationTime = 0.08f;
 
         private Vector3 vector;
 
@@ -59,7 +62,7 @@ namespace GameClassLibrary
             Moving = true;
             destinationPosition = destination;
             vector = Vector3.Normalize(destination - Position);
-            speed = 5.0f;
+            Speed = 5.0f;
             startRotation = Rotation;
             destinationRotation = Quaternion.LookRotation(vector);
             timeMoving = 0.0f;
@@ -71,8 +74,8 @@ namespace GameClassLibrary
             {
                 timeMoving += elapsed;
 
-                Position = Position + vector * speed * elapsed;
-                Rotation = Quaternion.Lerp(startRotation, destinationRotation, (timeMoving / (1.0f / 8.0f)));
+                Position = Position + vector * Speed * elapsed;
+                Rotation = Quaternion.Lerp(startRotation, destinationRotation, (timeMoving / RotationTime));
 
                 var vectorToTarget = (destinationPosition - Position).normalized;
 
@@ -94,14 +97,14 @@ namespace GameClassLibrary
         }
     }
 
-    class GroundPlane : MovableObject
+    class GroundTile : MovableObject
     {
         public int X;
         public int Y;
         public bool Blocked;
         public object Color;
 
-        public GroundPlane(ulong Id, Vector3 Position) : base(Id)
+        public GroundTile(ulong Id, Vector3 Position) : base(Id)
         {
             this.Position = Position;
         }
@@ -110,9 +113,9 @@ namespace GameClassLibrary
     class GroundPlaneDrawable : IDrawableObject
     {
         public UnityEngine.GameObject o;
-        public GroundPlane GroundPlane;
+        public GroundTile GroundPlane;
 
-        public GroundPlaneDrawable(GroundPlane groundPlane)
+        public GroundPlaneDrawable(GroundTile groundPlane)
         {
             o = UnityEngine.Object.Instantiate(Resources.Load("Plane", typeof(GameObject))) as GameObject;
             this.GroundPlane = groundPlane;
@@ -147,11 +150,29 @@ namespace GameClassLibrary
 
         Animator animator;
 
+        private float animationSpellDuration = 1.0f;
+        private float animationRunDuration = 1.0f;
+
         public CharacterDrawable(Character character)
         {
             this.character = character;
             o = GameObject.Instantiate(Resources.Load("GirlPrefab", typeof(GameObject))) as GameObject;
             animator = o.GetComponent<Animator>();
+
+            var allClips = animator.runtimeAnimatorController.animationClips;
+
+            foreach (var clip in allClips)
+            {
+                if (clip.name.StartsWith("spell"))
+                {
+                    animationSpellDuration = clip.length;
+                }
+
+                if (clip.name.StartsWith("run"))
+                {
+                    animationRunDuration = clip.length;
+                }
+            }
         }
 
         public GameObject GetObject()
@@ -172,6 +193,8 @@ namespace GameClassLibrary
             }
 
             animator.SetBool("Rest", !isMoving);
+            animator.SetFloat("Speed", character.Speed * (0.25f / animationRunDuration)); // (1.0f / steps? / animDuration)
+
         }
     }
 
@@ -182,7 +205,9 @@ namespace GameClassLibrary
         public Dictionary<ulong, object> Entities;
 
         public List<Character> Characters;
-        public List<GroundPlane> GroundPlanes;
+        public List<GroundTile> GroundTiles;
+
+        public Dictionary<(int, int), GroundTile> TileLookup;
 
         private ulong entityCounter;
         public ulong GetNewEntityId()
@@ -199,7 +224,35 @@ namespace GameClassLibrary
             Entities = new Dictionary<ulong, object>();
 
             Characters = new List<Character>();
-            GroundPlanes = new List<GroundPlane>();
+            GroundTiles = new List<GroundTile>();
+
+            TileLookup = new Dictionary<(int, int), GroundTile>();
+        }
+
+        readonly float tileSize = 10.0f;
+
+        (int, int) PositionToTile(Vector3 Position)
+        {
+            return ((int)(Position.x / tileSize), (int)(Position.z / tileSize));
+        }
+
+        void AddTile((int, int) tileIndex)
+        {
+            var (x, z) = tileIndex;
+            var Position = new Vector3(x * tileSize, 0.0f, z * tileSize);
+            var tile = new GroundTile(GetNewEntityId(), Position);
+            Entities.Add(tile.EntityId, tile);
+            GroundTiles.Add(tile);
+            TileLookup.Add(tileIndex, tile);
+        }
+
+        public (int, int) PositionToCell(float x, float z, float cellSize)
+        {
+            //var somex = ((int)((x + cellSize / 2.0f) / cellSize)) * cellSize;
+            //var somez = ((int)((z + cellSize / 2.0f) / cellSize)) * cellSize;
+            int intx = Mathf.CeilToInt(x / cellSize);
+            int intz = Mathf.CeilToInt(z / cellSize);
+            return (intx, intz);
         }
 
         public void AdvanceTime(float elapsed, List<object> commands)
@@ -211,9 +264,24 @@ namespace GameClassLibrary
                     case PlayerMove o:
                         var player = Entities[o.EntityId] as Character;
 
+                        // fix point to a grid...??
+                        var gridScale = 0.25f;
+                        var adjustedHit = o.Destination;
+                        adjustedHit.x = ((int)((adjustedHit.x + gridScale / 2.0f) / gridScale)) * gridScale;
+                        adjustedHit.z = ((int)((adjustedHit.z + gridScale / 2.0f) / gridScale)) * gridScale;
+                        int x = Mathf.CeilToInt(o.Destination.x / gridScale);
+                        int z = Mathf.CeilToInt(o.Destination.z / gridScale);
+                        var gridVector = new Vector3(x * gridScale - gridScale / 2.0f, o.Destination.y, z * gridScale - gridScale / 2.0f);
+
                         var distance = Vector3.Distance(player.Position, o.Destination);
-                        if (distance >= 0.5f)
+                        var vector = (o.Destination - player.Position).normalized;
+                        var minDistance = 0.5f;
+
+                        if (distance > minDistance)
                             player.Move(o.Destination);
+                        else
+                            player.Move(player.Position + vector * minDistance);
+
                         break;
                     case PlayerAbility o:
                         var newCharacter = new Character(GetNewEntityId());
@@ -229,7 +297,43 @@ namespace GameClassLibrary
             foreach (var character in Characters)
             {
                 character.UpdateMovement(elapsed);
+
+                // get and create tiles nearby player
+
+                var minTilesToShow = 1.5f;
+                var windowSize = tileSize * (minTilesToShow * 2.0f + 1.0f);
+                var halfWindow = windowSize / 2.0f;
+
+                //get start and end world coord, convert to tile index
+
+                var checkStartX = (character.Position.x - halfWindow);
+                var checkEndX = (character.Position.x + halfWindow);
+
+                var checkStartZ = (character.Position.z - halfWindow);
+                var checkEndZ = (character.Position.z + halfWindow);
+
+                var (sx, sz) = PositionToCell(checkStartX, checkStartZ, tileSize);
+                var (ex, ez) = PositionToCell(checkEndX, checkEndZ, tileSize);
+
+                // itterate over a window of tiles for each character...
+                for (int x = sx; x < ex; x++)
+                {
+                    for (int z = sz; z < ez; z++)
+                    {
+                        var tileIndex = (x, z);
+
+                        // check if tile at index exists
+                        if (!TileLookup.TryGetValue(tileIndex, out GroundTile tile))
+                        {
+                            // create nonexistant tiles
+                            AddTile(tileIndex);
+                        }
+
+                    }
+                }
+
             }
+
 
         }
     }
@@ -241,22 +345,25 @@ namespace GameClassLibrary
         private List<object> inputCommands;
         public ulong LocalPlayerID;
 
+        public float UpdateTime;
+
         public GameRunner()
         {
             // create empty game state
             gameState = new GameState();
 
+            /*
             // create level
             void createGroundPlane(Vector3 Position)
             {
-                var groundPlane = new GroundPlane(gameState.GetNewEntityId(), Position);
+                var groundPlane = new GroundTile(gameState.GetNewEntityId(), Position);
                 gameState.Entities.Add(groundPlane.EntityId, groundPlane);
-                gameState.GroundPlanes.Add(groundPlane);
+                gameState.GroundTiles.Add(groundPlane);
             }
 
             createGroundPlane(Vector3.zero);
             createGroundPlane(new Vector3(10.0f, 0.0f, 0.0f));
-            createGroundPlane(new Vector3(0.0f, 0.0f, 10.0f));
+            createGroundPlane(new Vector3(0.0f, 0.0f, 10.0f)); */
 
             // create local character
             var localCharacter = new Character(gameState.GetNewEntityId());
@@ -278,22 +385,9 @@ namespace GameClassLibrary
                 if (CursorHit(out Vector3 hit))
                 {
                     var move = new PlayerMove();
-
-                    var gridScale = 0.25f;
-
-                    var adjustedHit = hit;
-                    adjustedHit.x = ((int) ((adjustedHit.x + gridScale / 2.0f) / gridScale)) * gridScale;
-                    adjustedHit.z = ((int) ((adjustedHit.z + gridScale / 2.0f) / gridScale)) * gridScale;
-
-                    int x = Mathf.CeilToInt(hit.x / gridScale);
-                    int z = Mathf.CeilToInt(hit.z / gridScale);
-
-                    var gridVector = new Vector3(x * gridScale - gridScale / 2.0f, 0.0f, z * gridScale - gridScale / 2.0f);
-
-                    move.Destination = gridVector;
+                    move.Destination = hit;
                     move.EntityId = LocalPlayerID;
                     move.Frame = 0;
-
                     inputCommands.Add(move);
                 }
             }
@@ -340,10 +434,17 @@ namespace GameClassLibrary
             }
         }
 
+        float lastElapsed = 0.0f;
         public void Update(float elapsed)
         {
+            var timeStart = Time.realtimeSinceStartup;
+
             if (elapsed > (1.0 / 20.0f))
                 Debug.Log("LAGGGGGGGGGGGGG + " + (elapsed * 1000.0f).ToString("0.ms"));
+
+            if (Time.deltaTime > lastElapsed * 4.0f)
+                Debug.Log("SPIKEEEEEEEEEEE + " + (elapsed * 1000.0f).ToString("0.ms"));
+            lastElapsed = Time.deltaTime;
 
             GetLocalCommands();
 
@@ -351,6 +452,8 @@ namespace GameClassLibrary
             inputCommands.Clear();
 
             drawableManager.Update(gameState, this);
+
+            UpdateTime = Time.realtimeSinceStartup - timeStart;
         }
 
     }
@@ -400,7 +503,7 @@ namespace GameClassLibrary
                 }
             }
 
-            foreach (var groundPlane in state.GroundPlanes)
+            foreach (var groundPlane in state.GroundTiles)
             {
                 if (drawables.TryGetValue(groundPlane.EntityId, out IDrawableObject drawableObject))
                 {
