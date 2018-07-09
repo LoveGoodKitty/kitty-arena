@@ -1,22 +1,17 @@
-﻿//
-// Unityちゃん用の三人称カメラ
-// 
-// 2013/06/07 N.Kobyasahi
-//
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 
 public class ThirdPersonCamera : MonoBehaviour
 {
-    private float zoom = 1.75f;
+    private float zoom = 1.0f;
     private float zoomStep = 0.125f;
 
     private Vector3 lookTarget = Vector3.zero;
 
     private GameObject target = null;
 
-    private float followSpeed = 7.0f;
+    private float followSpeed = 15.0f;
 
     public Vector3 TargetPosition;
 
@@ -47,6 +42,7 @@ public class ThirdPersonCamera : MonoBehaviour
         var targetPosition = (lookAt + new Vector3(0.0f, 1.0f, 0.0f)) + (new Vector3(0.0f, 9.0f, -6.0f) * zoom);
 
         // smooth camera causes problems with player movement commands making character go back and forth... 
+        // adjust target position for camera lag?
         var smoothCamera = false;
         if (smoothCamera)
         {

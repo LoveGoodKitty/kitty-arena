@@ -30,7 +30,11 @@ public class GameModeController : MonoBehaviour
 
         var dot1 = Vector3.Dot(vecStart, vecMiddle);
         var dot2 = Vector3.Dot(vecEnd, vecMiddle);
+    }
 
+    private void FixedUpdate()
+    {
+        //gameMode.Update(Time.deltaTime);
     }
 
     private void Update()

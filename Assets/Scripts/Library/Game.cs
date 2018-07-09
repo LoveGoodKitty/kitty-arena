@@ -48,7 +48,7 @@ namespace GameClassLibrary
 
         public float Speed;
 
-        private float RotationTime = 0.08f;
+        private float RotationTime = 0.16f;
 
         private Vector3 vector;
 
@@ -57,15 +57,40 @@ namespace GameClassLibrary
             this.EntityId = EntityId;
         }
 
+
+        float moveStartTime = 0.0f;
+
         public void Move(Vector3 destination)
         {
             Moving = true;
             destinationPosition = destination;
+
             vector = Vector3.Normalize(destination - Position);
             Speed = 5.0f;
-            startRotation = Rotation;
+
+            //Rotation = Quaternion.Lerp(Rotation, destinationRotation, ((timeMoving) / RotationTime));
+            startRotation = lastSeenRotation;
             destinationRotation = Quaternion.LookRotation(vector);
+
             timeMoving = 0.0f;
+        }
+
+        //smooth out position
+        public Vector3 PositionInFuture(float timeInFuture)
+        {
+            return (Position + vector * Speed * timeInFuture);
+        }
+
+        Quaternion lastSeenRotation = Quaternion.identity;
+        public Quaternion RotationInFuture(float updateTime)
+        {
+            // time infuuture -> time since last update
+            //return (Quaternion.Lerp(Rotation, destinationRotation, ((timeMoving + timeInFuture) / RotationTime)));
+            // last seen rotation... destination rotation... elapsed time since last seen
+            var r = Quaternion.RotateTowards(lastSeenRotation, destinationRotation, 360.0f * 1.0f * updateTime);
+            lastSeenRotation = r;
+            return r;
+
         }
 
         public void UpdateMovement(float elapsed)
@@ -74,8 +99,9 @@ namespace GameClassLibrary
             {
                 timeMoving += elapsed;
 
+                //Position = Position + vector * Speed * (timeNow - moveStartTime);
                 Position = Position + vector * Speed * elapsed;
-                Rotation = Quaternion.Lerp(startRotation, destinationRotation, (timeMoving / RotationTime));
+                Rotation = Quaternion.RotateTowards(Rotation, destinationRotation, 360.0f * 1.0f * elapsed);
 
                 var vectorToTarget = (destinationPosition - Position).normalized;
 
@@ -87,12 +113,22 @@ namespace GameClassLibrary
                     //Debug.Log("Overshot Distance = " + distance.ToString("0.000 000"));
 
                     Position = destinationPosition;
+                    startPosition = Position;
 
                     Moving = false;
                     vector = Vector3.zero;
                     //Position = destinationPosition;
-                    timeMoving = 0.0f;
+
+                    //startRotation = Rotation;
+                    //destinationRotation = Rotation;
                 }
+            }
+
+            if (!Moving)
+            {
+                //startRotation = Rotation;
+                //destinationRotation = Rotation;
+                timeMoving = 0.0f;
             }
         }
     }
@@ -127,7 +163,7 @@ namespace GameClassLibrary
             return o;
         }
 
-        public void UpdateUnityObject()
+        public void UpdateUnityObject(GameState state)
         {
             o.transform.position = GroundPlane.Position;
         }
@@ -180,10 +216,12 @@ namespace GameClassLibrary
             return o;
         }
 
-        public void UpdateUnityObject()
+        public void UpdateUnityObject(GameState state)
         {
-            o.transform.position = character.Position;
-            o.transform.rotation = character.Rotation;
+            //o.transform.position = character.Position;
+            o.transform.position = character.PositionInFuture(state.remainingTime);
+            //o.transform.rotation = character.Rotation;
+            o.transform.rotation = character.RotationInFuture(state.lastUpdateTotalTime);
 
             var isMoving = character.Moving;
 
@@ -255,86 +293,100 @@ namespace GameClassLibrary
             return (intx, intz);
         }
 
+        public float remainingTime = 0.0f;
+        public float lastUpdateTotalTime = 0.0f;
+        private float timeStep = 1.0f / 25.0f;
         public void AdvanceTime(float elapsed, List<object> commands)
         {
-            foreach (var command in commands)
+            remainingTime += elapsed;
+            lastUpdateTotalTime = remainingTime;
+
+            while (remainingTime >= timeStep)
             {
-                switch (command)
+                remainingTime -= timeStep;
+                Time += timeStep;
+
+                foreach (var character in Characters)
                 {
-                    case PlayerMove o:
-                        var player = Entities[o.EntityId] as Character;
+                    character.UpdateMovement(timeStep);
 
-                        // fix point to a grid...??
-                        var gridScale = 0.25f;
-                        var adjustedHit = o.Destination;
-                        adjustedHit.x = ((int)((adjustedHit.x + gridScale / 2.0f) / gridScale)) * gridScale;
-                        adjustedHit.z = ((int)((adjustedHit.z + gridScale / 2.0f) / gridScale)) * gridScale;
-                        int x = Mathf.CeilToInt(o.Destination.x / gridScale);
-                        int z = Mathf.CeilToInt(o.Destination.z / gridScale);
-                        var gridVector = new Vector3(x * gridScale - gridScale / 2.0f, o.Destination.y, z * gridScale - gridScale / 2.0f);
+                    // get and create tiles nearby player
 
-                        var distance = Vector3.Distance(player.Position, o.Destination);
-                        var vector = (o.Destination - player.Position).normalized;
-                        var minDistance = 0.5f;
+                    var minTilesToShow = 1.5f;
+                    var windowSize = tileSize * (minTilesToShow * 2.0f + 1.0f);
+                    var halfWindow = windowSize / 2.0f;
 
-                        if (distance > minDistance)
-                            player.Move(o.Destination);
-                        else
-                            player.Move(player.Position + vector * minDistance);
+                    //get start and end world coord, convert to tile index
 
-                        break;
-                    case PlayerAbility o:
-                        var newCharacter = new Character(GetNewEntityId());
-                        Entities.Add(newCharacter.EntityId, newCharacter);
-                        Characters.Add(newCharacter);
-                        break;
-                    default:
-                        Debug.LogError("Unsupported command");
-                        break;
-                }
-            }
+                    var checkStartX = (character.Position.x - halfWindow);
+                    var checkEndX = (character.Position.x + halfWindow);
 
-            foreach (var character in Characters)
-            {
-                character.UpdateMovement(elapsed);
+                    var checkStartZ = (character.Position.z - halfWindow);
+                    var checkEndZ = (character.Position.z + halfWindow);
 
-                // get and create tiles nearby player
+                    var (sx, sz) = PositionToCell(checkStartX, checkStartZ, tileSize);
+                    var (ex, ez) = PositionToCell(checkEndX, checkEndZ, tileSize);
 
-                var minTilesToShow = 1.5f;
-                var windowSize = tileSize * (minTilesToShow * 2.0f + 1.0f);
-                var halfWindow = windowSize / 2.0f;
-
-                //get start and end world coord, convert to tile index
-
-                var checkStartX = (character.Position.x - halfWindow);
-                var checkEndX = (character.Position.x + halfWindow);
-
-                var checkStartZ = (character.Position.z - halfWindow);
-                var checkEndZ = (character.Position.z + halfWindow);
-
-                var (sx, sz) = PositionToCell(checkStartX, checkStartZ, tileSize);
-                var (ex, ez) = PositionToCell(checkEndX, checkEndZ, tileSize);
-
-                // itterate over a window of tiles for each character...
-                for (int x = sx; x < ex; x++)
-                {
-                    for (int z = sz; z < ez; z++)
+                    // itterate over a window of tiles for each character...
+                    for (int x = sx; x < ex; x++)
                     {
-                        var tileIndex = (x, z);
-
-                        // check if tile at index exists
-                        if (!TileLookup.TryGetValue(tileIndex, out GroundTile tile))
+                        for (int z = sz; z < ez; z++)
                         {
-                            // create nonexistant tiles
-                            AddTile(tileIndex);
-                        }
+                            var tileIndex = (x, z);
 
+                            // check if tile at index exists
+                            if (!TileLookup.TryGetValue(tileIndex, out GroundTile tile))
+                            {
+                                // create nonexistant tiles
+                                AddTile(tileIndex);
+                            }
+
+                        }
                     }
                 }
 
+                foreach (var command in commands)
+                {
+                    switch (command)
+                    {
+                        case PlayerMove o:
+                            var player = Entities[o.EntityId] as Character;
+
+                            // fix point to a grid...??
+                            var gridScale = 0.25f;
+                            var adjustedHit = o.Destination;
+                            adjustedHit.x = ((int)((adjustedHit.x + gridScale / 2.0f) / gridScale)) * gridScale;
+                            adjustedHit.z = ((int)((adjustedHit.z + gridScale / 2.0f) / gridScale)) * gridScale;
+                            int x = Mathf.CeilToInt(o.Destination.x / gridScale);
+                            int z = Mathf.CeilToInt(o.Destination.z / gridScale);
+                            var gridVector = new Vector3(x * gridScale - gridScale / 2.0f, o.Destination.y, z * gridScale - gridScale / 2.0f);
+
+                            var distance = Vector3.Distance(player.Position, o.Destination);
+                            var vector = (o.Destination - player.Position).normalized;
+                            var minDistance = 0.5f;
+
+                            if (distance > minDistance)
+                                player.Move(o.Destination);
+                            else
+                                player.Move(player.Position + vector * minDistance);
+
+                            break;
+                        case PlayerAbility o:
+                            var caster = Entities[o.EntityId] as Character;
+                            // set character to casting state
+                            // create spell instance
+
+                            var newCharacter = new Character(GetNewEntityId());
+                            Entities.Add(newCharacter.EntityId, newCharacter);
+                            Characters.Add(newCharacter);
+                            break;
+                        default:
+                            Debug.LogError("Unsupported command");
+                            break;
+                    }
+                }
+                commands.Clear();
             }
-
-
         }
     }
 
@@ -449,7 +501,7 @@ namespace GameClassLibrary
             GetLocalCommands();
 
             gameState.AdvanceTime(elapsed, inputCommands);
-            inputCommands.Clear();
+            //inputCommands.Clear();
 
             drawableManager.Update(gameState, this);
 
@@ -461,7 +513,7 @@ namespace GameClassLibrary
     interface IDrawableObject
     {
         GameObject GetObject();
-        void UpdateUnityObject();
+        void UpdateUnityObject(GameState state);
     }
 
     class DrawableManager
@@ -491,14 +543,14 @@ namespace GameClassLibrary
             {
                 if (drawables.TryGetValue(character.EntityId, out IDrawableObject drawableObject))
                 {
-                    drawableObject.UpdateUnityObject();
+                    drawableObject.UpdateUnityObject(state);
                 }
                 else
                 {
                     var newDrawableObject = new CharacterDrawable(character);
                     drawables.Add(character.EntityId, newDrawableObject);
 
-                    newDrawableObject.UpdateUnityObject();
+                    newDrawableObject.UpdateUnityObject(state);
 
                 }
             }
@@ -507,14 +559,14 @@ namespace GameClassLibrary
             {
                 if (drawables.TryGetValue(groundPlane.EntityId, out IDrawableObject drawableObject))
                 {
-                    drawableObject.UpdateUnityObject();
+                    drawableObject.UpdateUnityObject(state);
                 }
                 else
                 {
                     var newDrawableObject = new GroundPlaneDrawable(groundPlane);
                     drawables.Add(groundPlane.EntityId, newDrawableObject);
 
-                    newDrawableObject.UpdateUnityObject();
+                    newDrawableObject.UpdateUnityObject(state);
                 }
             }
 
