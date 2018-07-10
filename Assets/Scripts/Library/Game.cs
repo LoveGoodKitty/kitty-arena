@@ -14,6 +14,13 @@ using UnityEngine;
 
 namespace GameClassLibrary
 {
+    public static class GameStatic
+    {
+        public static readonly float TimeStep = 1.0f / 5.0f;
+        public static readonly float CameraFollowSpeed = 15.0f;
+        public static readonly float CharacterTurnSpeed = 0.2f;
+    }
+
     struct PlayerMove
     {
         public Vector3 Destination;
@@ -46,7 +53,7 @@ namespace GameClassLibrary
         private float distance;
         private float timeMoving;
 
-        public float Speed;
+        public float Speed = 5.0f;
 
         private float RotationTime = 0.16f;
 
@@ -57,51 +64,85 @@ namespace GameClassLibrary
             this.EntityId = EntityId;
         }
 
-
         float moveStartTime = 0.0f;
 
         public void Move(Vector3 destination)
         {
+            // make it so that character does not jump back and forward when issuing move command close to character
+
+            // when command is issued to move little distance, and it finishes moving before new frame is issued it creates jerking
+
+
+
+            var distance = Vector3.Distance(Position, destination);
+
+            var minDistance = Speed * GameStatic.TimeStep;
+
+            if (distance <= minDistance / 2.0f)
+                return;
+
+            if (distance < minDistance)
+                destination = (Position + (destination - Position).normalized * minDistance);
+
+            //destination.y = 0.0f;
+
+            //Debug.Log((destination - Position).normalized);
+
             Moving = true;
             destinationPosition = destination;
 
             vector = Vector3.Normalize(destination - Position);
-            Speed = 5.0f;
 
             //Rotation = Quaternion.Lerp(Rotation, destinationRotation, ((timeMoving) / RotationTime));
+            Rotation = lastSeenRotation;
             startRotation = lastSeenRotation;
             destinationRotation = Quaternion.LookRotation(vector);
 
             timeMoving = 0.0f;
         }
 
-        //smooth out position
+        // smooth out position
+        // move to visual part
         public Vector3 PositionInFuture(float timeInFuture)
         {
-            return (Position + vector * Speed * timeInFuture);
+            var positionInFuture = (Position + vector * Speed * timeInFuture);
+
+            var vectorToTarget = (destinationPosition - positionInFuture).normalized;
+
+            var vectorReversed = Mathf.Sign(vector.x) != Mathf.Sign(vectorToTarget.x) || Mathf.Sign(vector.z) != Mathf.Sign(vectorToTarget.z);
+
+            if (vectorReversed)
+            {
+                return destinationPosition;
+            }
+            else
+            {
+                return positionInFuture;
+            }
         }
 
+        // move to visual part
         Quaternion lastSeenRotation = Quaternion.identity;
         public Quaternion RotationInFuture(float updateTime)
         {
             // time infuuture -> time since last update
             //return (Quaternion.Lerp(Rotation, destinationRotation, ((timeMoving + timeInFuture) / RotationTime)));
             // last seen rotation... destination rotation... elapsed time since last seen
-            var r = Quaternion.RotateTowards(lastSeenRotation, destinationRotation, 360.0f * 1.0f * updateTime);
+            var r = Quaternion.RotateTowards(lastSeenRotation, destinationRotation, 360.0f * GameStatic.CharacterTurnSpeed * updateTime);
             lastSeenRotation = r;
             return r;
 
         }
 
-        public void UpdateMovement(float elapsed)
+        public void StepMovement()
         {
             if (Moving)
             {
-                timeMoving += elapsed;
+                timeMoving += GameStatic.TimeStep;
 
                 //Position = Position + vector * Speed * (timeNow - moveStartTime);
-                Position = Position + vector * Speed * elapsed;
-                Rotation = Quaternion.RotateTowards(Rotation, destinationRotation, 360.0f * 1.0f * elapsed);
+                Position = Position + vector * Speed * GameStatic.TimeStep;
+                //Rotation = Quaternion.RotateTowards(Rotation, destinationRotation, 360.0f * 1.0f * elapsed);
 
                 var vectorToTarget = (destinationPosition - Position).normalized;
 
@@ -295,20 +336,19 @@ namespace GameClassLibrary
 
         public float remainingTime = 0.0f;
         public float lastUpdateTotalTime = 0.0f;
-        private float timeStep = 1.0f / 25.0f;
-        public void AdvanceTime(float elapsed, List<object> commands)
+        public void Step(float elapsed, List<object> commands)
         {
             remainingTime += elapsed;
             lastUpdateTotalTime = remainingTime;
 
-            while (remainingTime >= timeStep)
+            while (remainingTime >= GameStatic.TimeStep)
             {
-                remainingTime -= timeStep;
-                Time += timeStep;
+                remainingTime -= GameStatic.TimeStep;
+                Time += GameStatic.TimeStep;
 
                 foreach (var character in Characters)
                 {
-                    character.UpdateMovement(timeStep);
+                    character.StepMovement();
 
                     // get and create tiles nearby player
 
@@ -345,30 +385,16 @@ namespace GameClassLibrary
                     }
                 }
 
+                if (commands.Count > 0)
+                    Debug.Log(commands.Count.ToString() + " commands in queue");
+
                 foreach (var command in commands)
                 {
                     switch (command)
                     {
                         case PlayerMove o:
                             var player = Entities[o.EntityId] as Character;
-
-                            // fix point to a grid...??
-                            var gridScale = 0.25f;
-                            var adjustedHit = o.Destination;
-                            adjustedHit.x = ((int)((adjustedHit.x + gridScale / 2.0f) / gridScale)) * gridScale;
-                            adjustedHit.z = ((int)((adjustedHit.z + gridScale / 2.0f) / gridScale)) * gridScale;
-                            int x = Mathf.CeilToInt(o.Destination.x / gridScale);
-                            int z = Mathf.CeilToInt(o.Destination.z / gridScale);
-                            var gridVector = new Vector3(x * gridScale - gridScale / 2.0f, o.Destination.y, z * gridScale - gridScale / 2.0f);
-
-                            var distance = Vector3.Distance(player.Position, o.Destination);
-                            var vector = (o.Destination - player.Position).normalized;
-                            var minDistance = 0.5f;
-
-                            if (distance > minDistance)
-                                player.Move(o.Destination);
-                            else
-                                player.Move(player.Position + vector * minDistance);
+                            player.Move(o.Destination);
 
                             break;
                         case PlayerAbility o:
@@ -430,6 +456,7 @@ namespace GameClassLibrary
             drawableManager = new DrawableManager();
         }
 
+        // add command queue / filter
         void GetLocalCommands()
         {
             if (Input.GetKey(KeyCode.Mouse0))
@@ -487,20 +514,31 @@ namespace GameClassLibrary
         }
 
         float lastElapsed = 0.0f;
+        Queue<float> frameTimes = new Queue<float>();
+        int maxFrames = 120;
+        public float averageFrameTime = 0.0f;
         public void Update(float elapsed)
         {
             var timeStart = Time.realtimeSinceStartup;
 
+            frameTimes.Enqueue(elapsed);
+            if (frameTimes.Count >= maxFrames)
+            {
+                frameTimes.Dequeue();
+            }
+            averageFrameTime = frameTimes.Average();
+
             if (elapsed > (1.0 / 20.0f))
                 Debug.Log("LAGGGGGGGGGGGGG + " + (elapsed * 1000.0f).ToString("0.ms"));
 
-            if (Time.deltaTime > lastElapsed * 4.0f)
+            if (elapsed > averageFrameTime * 5.0f)
                 Debug.Log("SPIKEEEEEEEEEEE + " + (elapsed * 1000.0f).ToString("0.ms"));
-            lastElapsed = Time.deltaTime;
+
+            lastElapsed = elapsed;
 
             GetLocalCommands();
 
-            gameState.AdvanceTime(elapsed, inputCommands);
+            gameState.Step(elapsed, inputCommands);
             //inputCommands.Clear();
 
             drawableManager.Update(gameState, this);
