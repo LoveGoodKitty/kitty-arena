@@ -16,14 +16,14 @@ namespace GameClassLibrary
 {
     public static class GameStatic
     {
-        public static readonly float TimeStep = 1.0f / 5.0f;
-        public static readonly float CameraFollowSpeed = 15.0f;
-        public static readonly float CharacterTurnSpeed = 0.2f;
+        public static readonly float TimeStep = 1.0f / 25.0f;
+        public static readonly float CameraFollowSpeed = 10.0f;
+        public static readonly float CharacterTurnSpeed = 1.0f;
     }
 
     struct PlayerMove
     {
-        public Vector3 Destination;
+        public Vector3 Offset;
         public ulong EntityId;
         public int Frame;
     }
@@ -66,37 +66,29 @@ namespace GameClassLibrary
 
         float moveStartTime = 0.0f;
 
-        public void Move(Vector3 destination)
+        public void Move(Vector3 offset)
         {
-            // make it so that character does not jump back and forward when issuing move command close to character
-
-            // when command is issued to move little distance, and it finishes moving before new frame is issued it creates jerking
-
-
+            var destination = Position + offset;
 
             var distance = Vector3.Distance(Position, destination);
 
-            var minDistance = Speed * GameStatic.TimeStep;
-
-            if (distance <= minDistance / 2.0f)
+            if (distance < float.Epsilon)
                 return;
+
+            var minDistance = Speed * GameStatic.TimeStep;
 
             if (distance < minDistance)
                 destination = (Position + (destination - Position).normalized * minDistance);
-
-            //destination.y = 0.0f;
-
-            //Debug.Log((destination - Position).normalized);
 
             Moving = true;
             destinationPosition = destination;
 
             vector = Vector3.Normalize(destination - Position);
 
-            //Rotation = Quaternion.Lerp(Rotation, destinationRotation, ((timeMoving) / RotationTime));
-            Rotation = lastSeenRotation;
-            startRotation = lastSeenRotation;
             destinationRotation = Quaternion.LookRotation(vector);
+            Rotation = destinationRotation;
+
+            startRotation = lastSeenRotation;
 
             timeMoving = 0.0f;
         }
@@ -125,9 +117,10 @@ namespace GameClassLibrary
         Quaternion lastSeenRotation = Quaternion.identity;
         public Quaternion RotationInFuture(float updateTime)
         {
-            // time infuuture -> time since last update
             //return (Quaternion.Lerp(Rotation, destinationRotation, ((timeMoving + timeInFuture) / RotationTime)));
-            // last seen rotation... destination rotation... elapsed time since last seen
+
+            // for local player smoothly rotate towards cursor position if issuing move commands
+
             var r = Quaternion.RotateTowards(lastSeenRotation, destinationRotation, 360.0f * GameStatic.CharacterTurnSpeed * updateTime);
             lastSeenRotation = r;
             return r;
@@ -142,7 +135,7 @@ namespace GameClassLibrary
 
                 //Position = Position + vector * Speed * (timeNow - moveStartTime);
                 Position = Position + vector * Speed * GameStatic.TimeStep;
-                //Rotation = Quaternion.RotateTowards(Rotation, destinationRotation, 360.0f * 1.0f * elapsed);
+                //Rotation = Quaternion.RotateTowards(Rotation, destinationRotation, 360.0f * GameStatic.CharacterTurnSpeed * GameStatic.TimeStep);
 
                 var vectorToTarget = (destinationPosition - Position).normalized;
 
@@ -150,25 +143,15 @@ namespace GameClassLibrary
 
                 if (vectorReversed)
                 {
-                    //var distanceToTarget = Vector3.Magnitude(Position - destinationPosition);
-                    //Debug.Log("Overshot Distance = " + distance.ToString("0.000 000"));
-
                     Position = destinationPosition;
                     startPosition = Position;
 
                     Moving = false;
-                    vector = Vector3.zero;
-                    //Position = destinationPosition;
-
-                    //startRotation = Rotation;
-                    //destinationRotation = Rotation;
                 }
             }
 
             if (!Moving)
             {
-                //startRotation = Rotation;
-                //destinationRotation = Rotation;
                 timeMoving = 0.0f;
             }
         }
@@ -186,7 +169,6 @@ namespace GameClassLibrary
             this.Position = Position;
         }
     }
-
     class GroundPlaneDrawable : IDrawableObject
     {
         public UnityEngine.GameObject o;
@@ -210,7 +192,7 @@ namespace GameClassLibrary
         }
     }
 
-    internal class Character : MovableObject
+    class Character : MovableObject
     {
         public float Mana = 100.0f;
 
@@ -219,14 +201,11 @@ namespace GameClassLibrary
 
         }
     }
-
     class CharacterDrawable : IDrawableObject
     {
         public GameObject o;
         public Character character;
-
         Animator animator;
-
         private float animationSpellDuration = 1.0f;
         private float animationRunDuration = 1.0f;
 
@@ -257,14 +236,17 @@ namespace GameClassLibrary
             return o;
         }
 
+        Vector3 lastSeenPosition = Vector3.zero;
         public void UpdateUnityObject(GameState state)
         {
             //o.transform.position = character.Position;
-            o.transform.position = character.PositionInFuture(state.remainingTime);
+            var extrapolatedPosition = character.PositionInFuture(state.remainingTime);
+            o.transform.position = extrapolatedPosition;
             //o.transform.rotation = character.Rotation;
             o.transform.rotation = character.RotationInFuture(state.lastUpdateTotalTime);
 
-            var isMoving = character.Moving;
+            //var isMoving = character.Moving;
+            var isMoving = Vector3.Distance(extrapolatedPosition, lastSeenPosition) > 0.0f; // and is moving, not in kickback
 
             if (isMoving)
             {
@@ -274,6 +256,7 @@ namespace GameClassLibrary
             animator.SetBool("Rest", !isMoving);
             animator.SetFloat("Speed", character.Speed * (0.25f / animationRunDuration)); // (1.0f / steps? / animDuration)
 
+            lastSeenPosition = extrapolatedPosition;
         }
     }
 
@@ -385,8 +368,8 @@ namespace GameClassLibrary
                     }
                 }
 
-                if (commands.Count > 0)
-                    Debug.Log(commands.Count.ToString() + " commands in queue");
+                //if (commands.Count > 0)
+                //    Debug.Log(commands.Count.ToString() + " commands in queue");
 
                 foreach (var command in commands)
                 {
@@ -394,7 +377,7 @@ namespace GameClassLibrary
                     {
                         case PlayerMove o:
                             var player = Entities[o.EntityId] as Character;
-                            player.Move(o.Destination);
+                            player.Move(o.Offset);
 
                             break;
                         case PlayerAbility o:
@@ -461,13 +444,16 @@ namespace GameClassLibrary
         {
             if (Input.GetKey(KeyCode.Mouse0))
             {
-                if (CursorHit(out Vector3 hit))
+                if (CursorOffsetFromCenterWorld(out Vector3 hit))
                 {
                     var move = new PlayerMove();
-                    move.Destination = hit;
+                    move.Offset = hit;
                     move.EntityId = LocalPlayerID;
                     move.Frame = 0;
                     inputCommands.Add(move);
+
+                    if (inputCommands.Count > 1)
+                        inputCommands.RemoveAt(0);
                 }
             }
 
@@ -493,24 +479,32 @@ namespace GameClassLibrary
             }
         }
 
-        private bool CursorHit(out Vector3 hit)
+        private bool CursorOffsetFromCenterWorld(out Vector3 offset)
         {
             var interactRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            //Physics.
-            //var mask = LayerMask.GetMask("Ground");
-            //return Physics.Raycast(interactRay, out hit, Mathf.Infinity, mask);
-            //return Physics.Raycast(interactRay, out hit);
+
+            var middleOfScreen = new Vector3(Screen.width / 2.0f, Screen.height / 2.0f, 0.0f);
+
+            var middleRay = Camera.main.ScreenPointToRay(middleOfScreen);
+
+            offset = Vector3.zero;
+
             var plane = new Plane(Vector3.up, 0.0f);
             if (plane.Raycast(interactRay, out float distance))
             {
-                hit = interactRay.GetPoint(distance);
-                return true;
+                var targetHit = interactRay.GetPoint(distance);
+
+                if (plane.Raycast(middleRay, out float middleDistance))
+                {
+                    var middleHit = middleRay.GetPoint(middleDistance);
+
+                    offset = targetHit - middleHit;
+
+                    return true;
+                }
             }
-            else
-            {
-                hit = Vector3.zero;
-                return false;
-            }
+
+            return false;
         }
 
         float lastElapsed = 0.0f;
