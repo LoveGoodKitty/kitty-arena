@@ -253,6 +253,7 @@ namespace GameClassLibrary
     class GameState
     {
         public float Time;
+        public ulong Frame;
         public Dictionary<ulong, object> Entities;
 
         public List<Character> Characters;
@@ -260,7 +261,7 @@ namespace GameClassLibrary
 
         public Dictionary<(int, int), GroundTile> TileLookup;
 
-        private DrawableManager drawableManager;
+        private DisplayManager drawableManager;
 
         private ulong entityCounter;
         public ulong GetNewEntityId()
@@ -274,11 +275,12 @@ namespace GameClassLibrary
             Entities.Add(id, entity);
         }
 
-        public GameState(DrawableManager drawableManager)
+        public GameState(DisplayManager drawableManager)
         {
             this.drawableManager = drawableManager;
 
             Time = 0.0f;
+            Frame = 0;
             entityCounter = 0;
 
             Entities = new Dictionary<ulong, object>();
@@ -307,12 +309,19 @@ namespace GameClassLibrary
             GroundTiles.Add(tile);
             TileLookup.Add(tileIndex, tile);
         }
-
         void RemoveTile(GroundTile tile)
         {
             Entities.Remove(tile.Id);
             GroundTiles.Remove(tile);
             TileLookup.Remove((tile.X, tile.Y));
+        }
+
+        public void AddCharacter()
+        {
+            var character = new Character(GetNewEntityId());
+            Entities.Add(character.Id, character);
+            Characters.Add(character);
+            drawableManager.Display(character);
         }
 
         public (int, int) PositionToCell(float x, float z, float cellSize)
@@ -326,15 +335,21 @@ namespace GameClassLibrary
 
         public float timeSinceStep = 0.0f;
         public float lastUpdateTotalTime = 0.0f;
-        public void Step(float elapsed, List<object> commands)
+        public void Step(float elapsed, List<object> commands, Action<List<object>> getLocalInput)
         {
             timeSinceStep += elapsed;
             lastUpdateTotalTime = timeSinceStep;
+
+            // need to continue accumulating commands even if simulation step is not yet nessasery
+            // move 
+            getLocalInput(commands);
 
             while (timeSinceStep >= GameStatic.TimeStep)
             {
                 timeSinceStep -= GameStatic.TimeStep;
                 Time += GameStatic.TimeStep;
+
+                GameDebugConsole.Log(Frame.ToString("0 frame"), -1, "frame");
 
                 foreach (var character in Characters)
                 {
@@ -373,12 +388,20 @@ namespace GameClassLibrary
                         }
                     }
                 }
+                
+                // stream in new commands from local player
+                if (commands.Count == 0)
+                    getLocalInput(commands);
 
-                //if (commands.Count > 0)
-                //    Debug.Log(commands.Count.ToString() + " commands in queue");
+                // if networked - get network commands
+                // if replay - stream in recorded commands
 
                 foreach (var command in commands)
                 {
+                    // when was command called? (frame)
+                    // who called command
+                    // handle late commands (rewind, replay)
+                    // keep list of incoming and processed commands
                     switch (command)
                     {
                         case PlayerMove o:
@@ -394,22 +417,29 @@ namespace GameClassLibrary
                             }
                             GroundTiles.Clear();
 
+                            AddCharacter();
+
                             GameDebugConsole.Log("Ability!!", 5.0f);
 
                             //var caster = Entities[o.EntityId] as Character;
-                            // set character to casting state
-                            // create spell instance
+                            // determine spell to cast
+                            // set character to casting state, update to play appropiate casting animation in drawable, 
+                            // set animation position in time and speed based on character casting state
+                            // spell and move durations / lenghts in full frames? use frame numbers for timing and duration
+                            // create spell instance and drawable
+                            // spell updates and affect game state
 
-                            //var newCharacter = new Character(GetNewEntityId());
-                            //Entities.Add(newCharacter.EntityId, newCharacter);
-                            //Characters.Add(newCharacter);
+
                             break;
                         default:
                             Debug.LogError("Unsupported command");
                             break;
                     }
                 }
+
                 commands.Clear();
+
+                Frame += 1;
             }
         }
     }
@@ -417,12 +447,18 @@ namespace GameClassLibrary
     class GameRunner
     {
         public GameState gameState;
-        public DrawableManager drawableManager;
+        public DisplayManager displayManager;
         private List<object> inputCommands;
 
         public ulong LocalPlayerID;
 
         public float UpdateTime;
+
+        public float TotalElapsedTime;
+
+        public float StateUpdateTime;
+
+        public float DrawUpdateTime;
 
         public GameRunner()
         {
@@ -430,22 +466,24 @@ namespace GameClassLibrary
             inputCommands = new List<object>();
 
             // if local player / spectator create drawable manager
-            drawableManager = new DrawableManager();
+            displayManager = new DisplayManager();
 
             // create empty game state
-            gameState = new GameState(drawableManager);
+            gameState = new GameState(displayManager);
 
             // create local character
             var localCharacter = new Character(gameState.GetNewEntityId());
             gameState.Entities.Add(localCharacter.Id, localCharacter);
             gameState.Characters.Add(localCharacter);
-            drawableManager.Display(localCharacter);
+            displayManager.Display(localCharacter);
 
             LocalPlayerID = localCharacter.Id;
+
+            TotalElapsedTime = 0.0f;
         }
 
         // add command queue / filter
-        void GetLocalCommands()
+        void GetLocalCommands(List<object> obj)
         {
             if (Input.GetKey(KeyCode.Mouse0))
             {
@@ -457,8 +495,8 @@ namespace GameClassLibrary
                     move.Frame = 0;
                     inputCommands.Add(move);
 
-                    //if (inputCommands.Count > 1)
-                    //    inputCommands.RemoveAt(0);
+                    if (inputCommands.Count > 1)
+                        inputCommands.RemoveAt(0);
                 }
             }
 
@@ -469,12 +507,19 @@ namespace GameClassLibrary
                 //AudioSource.PlayClipAtPoint(GameResources.audioBeep1, GameResources.Camera.transform.position);
             }
 
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                //inputCommands.Add(new PlayerAbility());
+                //AudioSource.PlayClipAtPoint(GameResources.audioBeep1, GameResources.Camera.transform.position);
+                GameDebugConsole.Log("E", 2.0f);
+            }
+
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
                 var currentCharacter = gameState.Characters.IndexOf(gameState.Entities[LocalPlayerID] as Character);
                 var newCharacter = Math.Max(0, (currentCharacter - 1) % gameState.Characters.Count);
 
-                LocalPlayerID = gameState.Characters[newCharacter].Id;
+                LocalPlayerID = (gameState.Entities[gameState.Characters[newCharacter].Id] as Character).Id;
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha2))
@@ -482,7 +527,7 @@ namespace GameClassLibrary
                 var currentCharacter = gameState.Characters.IndexOf(gameState.Entities[LocalPlayerID] as Character);
                 var newCharacter = Math.Max(0, (currentCharacter + 1) % gameState.Characters.Count);
 
-                LocalPlayerID = gameState.Characters[newCharacter].Id;
+                LocalPlayerID = (gameState.Entities[gameState.Characters[newCharacter].Id] as Character).Id;
             }
         }
 
@@ -523,9 +568,11 @@ namespace GameClassLibrary
             var timeStart = Time.realtimeSinceStartup;
             lastElapsed = elapsed;
 
-            GetLocalCommands();
-            gameState.Step(elapsed, inputCommands);
-            drawableManager.Update(gameState, this);
+            //GetLocalCommands();
+            gameState.Step(elapsed, inputCommands, GetLocalCommands);
+
+            // refesh and update objects to display
+            displayManager.Refresh(gameState, this);
 
             UpdateTime = Time.realtimeSinceStartup - timeStart;
             frameTimes.Enqueue(UpdateTime);
@@ -533,20 +580,20 @@ namespace GameClassLibrary
                 frameTimes.Dequeue();
             averageFrameTime = frameTimes.Average();
 
-            if (UpdateTime > averageFrameTime * 2.0f && (Application.isEditor ? (elapsed > (1.0f / 30.0f)) : true))
+            if (UpdateTime > averageFrameTime * 2.0f && (Application.isEditor ? (UpdateTime > (1.0f / 25.0f)) : (UpdateTime > (1.0f / 60.0f))))
             {
                 GameDebugConsole.Log(((UpdateTime - averageFrameTime) * 1000.0f).ToString("0.0 ms SPIKE!!"), 10.0f);
                 AudioSource.PlayClipAtPoint(GameResources.audioBeep1, GameResources.Camera.transform.position + GameResources.Camera.transform.forward, 0.2f);
             }
-        }
 
+        }
     }
 
-    class DrawableManager
+    class DisplayManager
     {
         public Dictionary<object, IDrawableObject> set;
 
-        public DrawableManager()
+        public DisplayManager()
         {
             set = new Dictionary<object, IDrawableObject>();
         }
@@ -574,10 +621,9 @@ namespace GameClassLibrary
                         break;
                 }
             }
-
         }
 
-        public void Update(GameState state, GameRunner runner)
+        public void Refresh(GameState state, GameRunner runner)
         {
             void setCameraToObject(IDrawableObject target)
             {
@@ -590,29 +636,6 @@ namespace GameClassLibrary
                     }
                 }
             }
-
-            /*
-            var removeList = new List<IDrawableObject>();
-            foreach (var drawable in set.Values)
-            {
-                bool exists = drawable.UpdateUnityObject(state);
-                if (!exists)
-                    removeList.Add(drawable);
-            }
-
-            for (int i = 0; i < removeList.Count; i++)
-            {
-                var drawableToRemove = removeList[i];
-                var o = drawableToRemove.GetUnityObject();
-                set.Remove(drawableToRemove.GetGameObject());
-
-                if (Application.isEditor)
-                    UnityEngine.Object.DestroyImmediate(o);
-                else
-                    UnityEngine.Object.Destroy(o);
-
-            }
-            removeList.Clear(); */
 
             // in drawable each frame:
             // go over game state entity(drawable?) list by game object hash
@@ -657,8 +680,8 @@ namespace GameClassLibrary
                 set.Remove(removedState);
             }
 
-
-            if (set.TryGetValue(runner.LocalPlayerID, out IDrawableObject playerTarget))
+            // set camera to follow local player location
+            if (set.TryGetValue(state.Entities[runner.LocalPlayerID], out IDrawableObject playerTarget))
             {
                 setCameraToObject(playerTarget);
             }
@@ -672,6 +695,7 @@ namespace GameClassLibrary
         public static UnityEngine.Object sphere;
 
         public static UnityEngine.Object groundPlane;
+        public static UnityEngine.Object playerPrefab;
 
         public static AudioClip audioBeep1;
 

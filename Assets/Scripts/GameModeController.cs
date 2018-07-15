@@ -57,7 +57,7 @@ public class GameModeController : MonoBehaviour
         GameDebugConsole.Log((Time.deltaTime * 1000.0f).ToString("0.0 ms total"), -1, "total");
         GameDebugConsole.Log((gameRunner.averageFrameTime * 1000.0f).ToString("0.0 ms run"), -1, "run");
         GameDebugConsole.Log((gameRunner.gameState.GroundTiles.Count).ToString("0 tiles"), - 1, "tiles");
-        GameDebugConsole.Log((gameRunner.drawableManager.set.Count).ToString("0 drawables"), -1, "drawables");
+        GameDebugConsole.Log((gameRunner.displayManager.set.Count).ToString("0 drawables"), -1, "drawables");
 
         GameDebugConsole.Draw(Time.deltaTime);
     }
