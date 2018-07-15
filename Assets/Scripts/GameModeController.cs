@@ -10,26 +10,31 @@ using GameClassLibrary;
 
 public class GameModeController : MonoBehaviour
 {
-    private GameRunner gameMode;
+    private GameRunner gameRunner;
 
     public GameModeController()
     {
-        gameMode = new GameRunner();
     }
 
     public void Start()
     {
-        GraphicsResources.LoadResources();
+        //System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
 
-        var vecMiddle = new Vector3(3.0f, 0.0f, 0.0f);
-        var vecStart = new Vector3(1.0f, 0.0f, 0.0f);
-        var vecEnd = new Vector3(5.0f, 0.0f, 0.0f);
+        GameResources.LoadAll();
 
-        var angle1 = Vector3.Angle(vecStart, vecMiddle);
-        var angle2 = Vector3.Angle(vecEnd, vecMiddle);
+        gameRunner = new GameRunner();
 
-        var dot1 = Vector3.Dot(vecStart, vecMiddle);
-        var dot2 = Vector3.Dot(vecEnd, vecMiddle);
+        /*
+        try
+        {
+            var priority = System.Diagnostics.ProcessPriorityClass.High;
+            System.Diagnostics.Process.GetCurrentProcess().PriorityClass = priority;
+            GameDebugConsole.Log(priority.ToString(), 10.0f);
+        }
+        catch (Exception e)
+        {
+            GameDebugConsole.Log("Failed to set thread priority." + e.Message, 10.0f);
+        }*/
     }
 
     private void FixedUpdate()
@@ -39,14 +44,22 @@ public class GameModeController : MonoBehaviour
 
     private void Update()
     {
-        gameMode.Update(Time.deltaTime);
+        gameRunner.Update(Time.deltaTime);
     }
 
     private void OnGUI()
     {
-        GUI.Label(new Rect(10, 10, 100, 20), (Time.deltaTime * 1000.0f).ToString("00.00ms"));
-        GUI.Label(new Rect(10, 30, 100, 20), (gameMode.UpdateTime * 1000.0f).ToString("00.00ms"));
-        GUI.Label(new Rect(10, 50, 100, 20), (gameMode.averageFrameTime * 1000.0f).ToString("00.00ms"));
+        //GUI.Label(new Rect(10, 10, 100, 20), (Time.deltaTime * 1000.0f).ToString("00.00ms Total"));
+        //GUI.Label(new Rect(10, 30, 100, 20), (gameRunner.averageFrameTime * 1000.0f).ToString("00.00ms Run"));
+        //GUI.Label(new Rect(10, 50, 100, 20), (gameRunner.gameState.GroundTiles.Count).ToString("0 tiles"));
+        //GUI.Label(new Rect(10, 70, 100, 20), (gameRunner.drawableManager.set.Count).ToString("0 drawables"));
+
+        GameDebugConsole.Log((Time.deltaTime * 1000.0f).ToString("0.0 ms total"), -1, "total");
+        GameDebugConsole.Log((gameRunner.averageFrameTime * 1000.0f).ToString("0.0 ms run"), -1, "run");
+        GameDebugConsole.Log((gameRunner.gameState.GroundTiles.Count).ToString("0 tiles"), - 1, "tiles");
+        GameDebugConsole.Log((gameRunner.drawableManager.set.Count).ToString("0 drawables"), -1, "drawables");
+
+        GameDebugConsole.Draw(Time.deltaTime);
     }
 }
 

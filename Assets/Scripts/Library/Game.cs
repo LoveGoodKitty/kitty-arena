@@ -16,9 +16,9 @@ namespace GameClassLibrary
 {
     public static class GameStatic
     {
-        public static readonly float TimeStep = 1.0f / 25.0f;
+        public static readonly float TimeStep = 1.0f / 10.0f;
         public static readonly float CameraFollowSpeed = 10.0f;
-        public static readonly float CharacterTurnSpeed = 1.0f;
+        public static readonly float CharacterTurnSpeed = 360.0f * 4.0f;
     }
 
     struct PlayerMove
@@ -38,30 +38,19 @@ namespace GameClassLibrary
 
     class MovableObject
     {
-        public ulong EntityId;
+        public ulong Id;
 
         public Vector3 Position;
+        public Vector3 StartPosition;
+        public Vector3 DestinationPosition;
+        public Vector3 MovementVector;
         public Quaternion Rotation;
         public bool Moving;
-
-        private Quaternion startRotation;
-        private Quaternion destinationRotation;
-
-        private Vector3 startPosition;
-        private Vector3 destinationPosition;
-
-        private float distance;
-        private float timeMoving;
-
         public float Speed = 5.0f;
-
-        private float RotationTime = 0.16f;
-
-        private Vector3 vector;
 
         public MovableObject(ulong EntityId)
         {
-            this.EntityId = EntityId;
+            this.Id = EntityId;
         }
 
         float moveStartTime = 0.0f;
@@ -81,78 +70,29 @@ namespace GameClassLibrary
                 destination = (Position + (destination - Position).normalized * minDistance);
 
             Moving = true;
-            destinationPosition = destination;
+            DestinationPosition = destination;
 
-            vector = Vector3.Normalize(destination - Position);
+            MovementVector = Vector3.Normalize(destination - Position);
 
-            destinationRotation = Quaternion.LookRotation(vector);
-            Rotation = destinationRotation;
-
-            startRotation = lastSeenRotation;
-
-            timeMoving = 0.0f;
+            Rotation = Quaternion.LookRotation(MovementVector);
         }
 
-        // smooth out position
-        // move to visual part
-        public Vector3 PositionInFuture(float timeInFuture)
-        {
-            var positionInFuture = (Position + vector * Speed * timeInFuture);
-
-            var vectorToTarget = (destinationPosition - positionInFuture).normalized;
-
-            var vectorReversed = Mathf.Sign(vector.x) != Mathf.Sign(vectorToTarget.x) || Mathf.Sign(vector.z) != Mathf.Sign(vectorToTarget.z);
-
-            if (vectorReversed)
-            {
-                return destinationPosition;
-            }
-            else
-            {
-                return positionInFuture;
-            }
-        }
-
-        // move to visual part
-        Quaternion lastSeenRotation = Quaternion.identity;
-        public Quaternion RotationInFuture(float updateTime)
-        {
-            //return (Quaternion.Lerp(Rotation, destinationRotation, ((timeMoving + timeInFuture) / RotationTime)));
-
-            // for local player smoothly rotate towards cursor position if issuing move commands
-
-            var r = Quaternion.RotateTowards(lastSeenRotation, destinationRotation, 360.0f * GameStatic.CharacterTurnSpeed * updateTime);
-            lastSeenRotation = r;
-            return r;
-
-        }
-
-        public void StepMovement()
+        public void Step()
         {
             if (Moving)
             {
-                timeMoving += GameStatic.TimeStep;
-
-                //Position = Position + vector * Speed * (timeNow - moveStartTime);
-                Position = Position + vector * Speed * GameStatic.TimeStep;
+                Position = Position + MovementVector * Speed * GameStatic.TimeStep;
                 //Rotation = Quaternion.RotateTowards(Rotation, destinationRotation, 360.0f * GameStatic.CharacterTurnSpeed * GameStatic.TimeStep);
 
-                var vectorToTarget = (destinationPosition - Position).normalized;
+                var vectorToTarget = (DestinationPosition - Position).normalized;
 
-                var vectorReversed = Mathf.Sign(vector.x) != Mathf.Sign(vectorToTarget.x) || Mathf.Sign(vector.z) != Mathf.Sign(vectorToTarget.z);
+                var vectorReversed = Mathf.Sign(MovementVector.x) != Mathf.Sign(vectorToTarget.x) || Mathf.Sign(MovementVector.z) != Mathf.Sign(vectorToTarget.z);
 
                 if (vectorReversed)
                 {
-                    Position = destinationPosition;
-                    startPosition = Position;
-
+                    Position = DestinationPosition;
                     Moving = false;
                 }
-            }
-
-            if (!Moving)
-            {
-                timeMoving = 0.0f;
             }
         }
     }
@@ -169,26 +109,40 @@ namespace GameClassLibrary
             this.Position = Position;
         }
     }
-    class GroundPlaneDrawable : IDrawableObject
+
+    interface IDrawableObject
+    {
+        object GetGameObject();
+        GameObject GetUnityObject();
+        void UpdateUnityObject(GameState state);
+    }
+
+    class GroundTileDrawable : IDrawableObject
     {
         public UnityEngine.GameObject o;
-        public GroundTile GroundPlane;
+        public GroundTile groundTile;
 
-        public GroundPlaneDrawable(GroundTile groundPlane)
+        public GroundTileDrawable(GroundTile groundPlane)
         {
-            o = UnityEngine.Object.Instantiate(Resources.Load("Plane", typeof(GameObject))) as GameObject;
-            this.GroundPlane = groundPlane;
-            o.transform.position = GroundPlane.Position;
+            o = UnityEngine.Object.Instantiate(GameResources.groundPlane) as GameObject;
+            this.groundTile = groundPlane;
+
+            o.transform.position = groundTile.Position;
         }
 
-        public GameObject GetObject()
+        public GameObject GetUnityObject()
         {
             return o;
         }
 
+        public object GetGameObject()
+        {
+            return groundTile;
+        }
+
         public void UpdateUnityObject(GameState state)
         {
-            o.transform.position = GroundPlane.Position;
+
         }
     }
 
@@ -205,6 +159,9 @@ namespace GameClassLibrary
     {
         public GameObject o;
         public Character character;
+
+        public Quaternion SmoothRotation = Quaternion.identity;
+
         Animator animator;
         private float animationSpellDuration = 1.0f;
         private float animationRunDuration = 1.0f;
@@ -216,7 +173,6 @@ namespace GameClassLibrary
             animator = o.GetComponent<Animator>();
 
             var allClips = animator.runtimeAnimatorController.animationClips;
-
             foreach (var clip in allClips)
             {
                 if (clip.name.StartsWith("spell"))
@@ -227,23 +183,56 @@ namespace GameClassLibrary
                 if (clip.name.StartsWith("run"))
                 {
                     animationRunDuration = clip.length;
+                    // add footprint sound events at contact frames..
                 }
             }
         }
 
-        public GameObject GetObject()
+        public GameObject GetUnityObject()
         {
             return o;
+        }
+
+        public object GetGameObject()
+        {
+            return character;
         }
 
         Vector3 lastSeenPosition = Vector3.zero;
         public void UpdateUnityObject(GameState state)
         {
+            Vector3 PositionInFuture(float timeInFuture)
+            {
+                var positionInFuture = (character.Position + character.MovementVector * character.Speed * state.timeSinceStep);
+
+                // dont overshoot extrapolated position over destination position
+                var vectorToTarget = (character.DestinationPosition - positionInFuture).normalized;
+                var vectorReversed = Mathf.Sign(character.MovementVector.x) != Mathf.Sign(vectorToTarget.x) || Mathf.Sign(character.MovementVector.z) != Mathf.Sign(vectorToTarget.z);
+                if (vectorReversed)
+                {
+                    return character.DestinationPosition;
+                }
+                else
+                {
+                    return positionInFuture;
+                }
+            }
+
+            Quaternion RotationInFuture(float elapsedTime)
+            {
+                var r = Quaternion.RotateTowards(SmoothRotation, character.Rotation, GameStatic.CharacterTurnSpeed * Time.deltaTime);
+                SmoothRotation = r;
+                return r;
+            }
+
             //o.transform.position = character.Position;
-            var extrapolatedPosition = character.PositionInFuture(state.remainingTime);
+            var extrapolatedPosition = PositionInFuture(state.timeSinceStep);
             o.transform.position = extrapolatedPosition;
+
             //o.transform.rotation = character.Rotation;
-            o.transform.rotation = character.RotationInFuture(state.lastUpdateTotalTime);
+            //o.transform.rotation = character.RotationInFuture(state.lastUpdateTotalTime);
+            //o.transform.rotation = Quaternion.RotateTowards(o.transform.rotation, character.Rotation, GameStatic.CharacterTurnSpeed * Time.deltaTime);
+            o.transform.rotation = RotationInFuture(state.lastUpdateTotalTime);
 
             //var isMoving = character.Moving;
             var isMoving = Vector3.Distance(extrapolatedPosition, lastSeenPosition) > 0.0f; // and is moving, not in kickback
@@ -271,6 +260,8 @@ namespace GameClassLibrary
 
         public Dictionary<(int, int), GroundTile> TileLookup;
 
+        private DrawableManager drawableManager;
+
         private ulong entityCounter;
         public ulong GetNewEntityId()
         {
@@ -278,8 +269,15 @@ namespace GameClassLibrary
             return entityCounter;
         }
 
-        public GameState()
+        public void AddEntity(ulong id, object entity)
         {
+            Entities.Add(id, entity);
+        }
+
+        public GameState(DrawableManager drawableManager)
+        {
+            this.drawableManager = drawableManager;
+
             Time = 0.0f;
             entityCounter = 0;
 
@@ -303,9 +301,18 @@ namespace GameClassLibrary
             var (x, z) = tileIndex;
             var Position = new Vector3(x * tileSize, 0.0f, z * tileSize);
             var tile = new GroundTile(GetNewEntityId(), Position);
-            Entities.Add(tile.EntityId, tile);
+            tile.X = x;
+            tile.Y = z;
+            Entities.Add(tile.Id, tile);
             GroundTiles.Add(tile);
             TileLookup.Add(tileIndex, tile);
+        }
+
+        void RemoveTile(GroundTile tile)
+        {
+            Entities.Remove(tile.Id);
+            GroundTiles.Remove(tile);
+            TileLookup.Remove((tile.X, tile.Y));
         }
 
         public (int, int) PositionToCell(float x, float z, float cellSize)
@@ -317,25 +324,25 @@ namespace GameClassLibrary
             return (intx, intz);
         }
 
-        public float remainingTime = 0.0f;
+        public float timeSinceStep = 0.0f;
         public float lastUpdateTotalTime = 0.0f;
         public void Step(float elapsed, List<object> commands)
         {
-            remainingTime += elapsed;
-            lastUpdateTotalTime = remainingTime;
+            timeSinceStep += elapsed;
+            lastUpdateTotalTime = timeSinceStep;
 
-            while (remainingTime >= GameStatic.TimeStep)
+            while (timeSinceStep >= GameStatic.TimeStep)
             {
-                remainingTime -= GameStatic.TimeStep;
+                timeSinceStep -= GameStatic.TimeStep;
                 Time += GameStatic.TimeStep;
 
                 foreach (var character in Characters)
                 {
-                    character.StepMovement();
+                    character.Step();
 
                     // get and create tiles nearby player
 
-                    var minTilesToShow = 1.5f;
+                    var minTilesToShow = 9.5f;
                     var windowSize = tileSize * (minTilesToShow * 2.0f + 1.0f);
                     var halfWindow = windowSize / 2.0f;
 
@@ -363,7 +370,6 @@ namespace GameClassLibrary
                                 // create nonexistant tiles
                                 AddTile(tileIndex);
                             }
-
                         }
                     }
                 }
@@ -381,13 +387,22 @@ namespace GameClassLibrary
 
                             break;
                         case PlayerAbility o:
-                            var caster = Entities[o.EntityId] as Character;
+                            foreach (var tile in GroundTiles)
+                            {
+                                Entities.Remove(tile.Id);
+                                TileLookup.Remove((tile.X, tile.Y));
+                            }
+                            GroundTiles.Clear();
+
+                            GameDebugConsole.Log("Ability!!", 5.0f);
+
+                            //var caster = Entities[o.EntityId] as Character;
                             // set character to casting state
                             // create spell instance
 
-                            var newCharacter = new Character(GetNewEntityId());
-                            Entities.Add(newCharacter.EntityId, newCharacter);
-                            Characters.Add(newCharacter);
+                            //var newCharacter = new Character(GetNewEntityId());
+                            //Entities.Add(newCharacter.EntityId, newCharacter);
+                            //Characters.Add(newCharacter);
                             break;
                         default:
                             Debug.LogError("Unsupported command");
@@ -402,41 +417,31 @@ namespace GameClassLibrary
     class GameRunner
     {
         public GameState gameState;
-        private DrawableManager drawableManager;
+        public DrawableManager drawableManager;
         private List<object> inputCommands;
+
         public ulong LocalPlayerID;
 
         public float UpdateTime;
 
         public GameRunner()
         {
+            // list of input commands from local player
+            inputCommands = new List<object>();
+
+            // if local player / spectator create drawable manager
+            drawableManager = new DrawableManager();
+
             // create empty game state
-            gameState = new GameState();
-
-            /*
-            // create level
-            void createGroundPlane(Vector3 Position)
-            {
-                var groundPlane = new GroundTile(gameState.GetNewEntityId(), Position);
-                gameState.Entities.Add(groundPlane.EntityId, groundPlane);
-                gameState.GroundTiles.Add(groundPlane);
-            }
-
-            createGroundPlane(Vector3.zero);
-            createGroundPlane(new Vector3(10.0f, 0.0f, 0.0f));
-            createGroundPlane(new Vector3(0.0f, 0.0f, 10.0f)); */
+            gameState = new GameState(drawableManager);
 
             // create local character
             var localCharacter = new Character(gameState.GetNewEntityId());
-            gameState.Entities.Add(localCharacter.EntityId, localCharacter);
+            gameState.Entities.Add(localCharacter.Id, localCharacter);
             gameState.Characters.Add(localCharacter);
+            drawableManager.Display(localCharacter);
 
-            // set local player id for camera and input delegation
-            LocalPlayerID = localCharacter.EntityId;
-
-            inputCommands = new List<object>();
-
-            drawableManager = new DrawableManager();
+            LocalPlayerID = localCharacter.Id;
         }
 
         // add command queue / filter
@@ -452,14 +457,16 @@ namespace GameClassLibrary
                     move.Frame = 0;
                     inputCommands.Add(move);
 
-                    if (inputCommands.Count > 1)
-                        inputCommands.RemoveAt(0);
+                    //if (inputCommands.Count > 1)
+                    //    inputCommands.RemoveAt(0);
                 }
             }
 
             if (Input.GetKeyDown(KeyCode.W))
             {
                 inputCommands.Add(new PlayerAbility());
+
+                //AudioSource.PlayClipAtPoint(GameResources.audioBeep1, GameResources.Camera.transform.position);
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -467,7 +474,7 @@ namespace GameClassLibrary
                 var currentCharacter = gameState.Characters.IndexOf(gameState.Entities[LocalPlayerID] as Character);
                 var newCharacter = Math.Max(0, (currentCharacter - 1) % gameState.Characters.Count);
 
-                LocalPlayerID = gameState.Characters[newCharacter].EntityId;
+                LocalPlayerID = gameState.Characters[newCharacter].Id;
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha2))
@@ -475,7 +482,7 @@ namespace GameClassLibrary
                 var currentCharacter = gameState.Characters.IndexOf(gameState.Entities[LocalPlayerID] as Character);
                 var newCharacter = Math.Max(0, (currentCharacter + 1) % gameState.Characters.Count);
 
-                LocalPlayerID = gameState.Characters[newCharacter].EntityId;
+                LocalPlayerID = gameState.Characters[newCharacter].Id;
             }
         }
 
@@ -514,115 +521,169 @@ namespace GameClassLibrary
         public void Update(float elapsed)
         {
             var timeStart = Time.realtimeSinceStartup;
-
-            frameTimes.Enqueue(elapsed);
-            if (frameTimes.Count >= maxFrames)
-            {
-                frameTimes.Dequeue();
-            }
-            averageFrameTime = frameTimes.Average();
-
-            if (elapsed > (1.0 / 20.0f))
-                Debug.Log("LAGGGGGGGGGGGGG + " + (elapsed * 1000.0f).ToString("0.ms"));
-
-            if (elapsed > averageFrameTime * 5.0f)
-                Debug.Log("SPIKEEEEEEEEEEE + " + (elapsed * 1000.0f).ToString("0.ms"));
-
             lastElapsed = elapsed;
 
             GetLocalCommands();
-
             gameState.Step(elapsed, inputCommands);
-            //inputCommands.Clear();
-
             drawableManager.Update(gameState, this);
 
             UpdateTime = Time.realtimeSinceStartup - timeStart;
+            frameTimes.Enqueue(UpdateTime);
+            if (frameTimes.Count >= maxFrames)
+                frameTimes.Dequeue();
+            averageFrameTime = frameTimes.Average();
+
+            if (UpdateTime > averageFrameTime * 2.0f && (Application.isEditor ? (elapsed > (1.0f / 30.0f)) : true))
+            {
+                GameDebugConsole.Log(((UpdateTime - averageFrameTime) * 1000.0f).ToString("0.0 ms SPIKE!!"), 10.0f);
+                AudioSource.PlayClipAtPoint(GameResources.audioBeep1, GameResources.Camera.transform.position + GameResources.Camera.transform.forward, 0.2f);
+            }
         }
 
     }
 
-    interface IDrawableObject
-    {
-        GameObject GetObject();
-        void UpdateUnityObject(GameState state);
-    }
-
     class DrawableManager
     {
-        public Dictionary<ulong, IDrawableObject> drawables;
+        public Dictionary<object, IDrawableObject> set;
 
         public DrawableManager()
         {
-            drawables = new Dictionary<ulong, IDrawableObject>();
+            set = new Dictionary<object, IDrawableObject>();
+        }
+
+        public void Display(object gameObject)
+        {
+            if (set.TryGetValue(gameObject, out IDrawableObject drawable))
+            {
+                Debug.Log("Adding already contained game object to drawable set. " + gameObject.ToString());
+            }
+            else
+            {
+                switch (gameObject)
+                {
+                    case Character o:
+                        set.Add(gameObject, new CharacterDrawable(o));
+                        break;
+
+                    case GroundTile o:
+                        set.Add(gameObject, new GroundTileDrawable(o));
+                        break;
+
+                    default:
+                        //Debug.Log("Trying to display game object without display handling. " + gameObject.ToString());
+                        break;
+                }
+            }
+
         }
 
         public void Update(GameState state, GameRunner runner)
         {
             void setCameraToObject(IDrawableObject target)
             {
-                if (target != null && GraphicsResources.Camera != null)
+                if (target != null && GameResources.Camera != null)
                 {
-                    var o = target.GetObject();
+                    var o = target.GetUnityObject();
                     if (o != null)
                     {
-                        GraphicsResources.Camera.SetTarget(o);
+                        GameResources.Camera.SetTarget(o);
                     }
                 }
             }
 
-            foreach (var character in state.Characters)
+            /*
+            var removeList = new List<IDrawableObject>();
+            foreach (var drawable in set.Values)
             {
-                if (drawables.TryGetValue(character.EntityId, out IDrawableObject drawableObject))
-                {
-                    drawableObject.UpdateUnityObject(state);
-                }
+                bool exists = drawable.UpdateUnityObject(state);
+                if (!exists)
+                    removeList.Add(drawable);
+            }
+
+            for (int i = 0; i < removeList.Count; i++)
+            {
+                var drawableToRemove = removeList[i];
+                var o = drawableToRemove.GetUnityObject();
+                set.Remove(drawableToRemove.GetGameObject());
+
+                if (Application.isEditor)
+                    UnityEngine.Object.DestroyImmediate(o);
                 else
+                    UnityEngine.Object.Destroy(o);
+
+            }
+            removeList.Clear(); */
+
+            // in drawable each frame:
+            // go over game state entity(drawable?) list by game object hash
+            // try find existing associated drawable object - drawable
+            // create a new darawable in switch if not exists
+            // go over each game object in drawables and dispose unity object if object does not exist in game state
+            // update existing drawables(updatables?)
+            // remove disposed unity objects from drawable dictionary
+
+            foreach (var stateObject in state.Entities.Values)
+            {
+                // if stateObject is drawable at all?
+                if (!set.ContainsKey(stateObject))
                 {
-                    var newDrawableObject = new CharacterDrawable(character);
-                    drawables.Add(character.EntityId, newDrawableObject);
-
-                    newDrawableObject.UpdateUnityObject(state);
-
+                    Display(stateObject);
+                    //Debug.Log("Display created for : " + stateObject.ToString());
                 }
             }
 
-            foreach (var groundPlane in state.GroundTiles)
+            var disposedStateObjects = new List<object>();
+            foreach (var kvp in set)
             {
-                if (drawables.TryGetValue(groundPlane.EntityId, out IDrawableObject drawableObject))
+                if (state.Entities.ContainsValue(kvp.Key))
                 {
-                    drawableObject.UpdateUnityObject(state);
+                    // if this is updatable at all?
+                    kvp.Value.UpdateUnityObject(state);
                 }
                 else
                 {
-                    var newDrawableObject = new GroundPlaneDrawable(groundPlane);
-                    drawables.Add(groundPlane.EntityId, newDrawableObject);
+                    disposedStateObjects.Add(kvp.Key);
 
-                    newDrawableObject.UpdateUnityObject(state);
+                    var o = kvp.Value.GetUnityObject();
+
+                    if (Application.isEditor)
+                        UnityEngine.Object.DestroyImmediate(o);
+                    else
+                        UnityEngine.Object.Destroy(o);
                 }
             }
+            foreach (var removedState in disposedStateObjects)
+            {
+                set.Remove(removedState);
+            }
 
-            if (drawables.TryGetValue(runner.LocalPlayerID, out IDrawableObject playerTarget))
+
+            if (set.TryGetValue(runner.LocalPlayerID, out IDrawableObject playerTarget))
             {
                 setCameraToObject(playerTarget);
             }
-
-
         }
-
     }
 
-    public static class GraphicsResources
+    public static class GameResources
     {
         public static ThirdPersonCamera Camera;
         public static UnityEngine.Object girlPrefab;
         public static UnityEngine.Object sphere;
 
-        public static void LoadResources()
+        public static UnityEngine.Object groundPlane;
+
+        public static AudioClip audioBeep1;
+
+        public static void LoadAll()
         {
             var mainCamera = GameObject.FindWithTag("MainCamera");
             var cameraScript = mainCamera.GetComponent<ThirdPersonCamera>();
             Camera = cameraScript;
+
+            audioBeep1 = Resources.Load<AudioClip>("Sounds\\beep1");
+
+            groundPlane = Resources.Load("Plane");
 
             //sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere) as GameObject;
 
