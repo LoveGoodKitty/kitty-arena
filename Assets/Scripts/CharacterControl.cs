@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using GameClassLibrary;
 
 /// <summary>
 /// 
@@ -41,7 +39,7 @@ using GameClassLibrary;
 //[RequireComponent(typeof (CapsuleCollider))]
 [RequireComponent(typeof (Rigidbody))]
 public class CharacterControl : MonoBehaviour
-{
+{/*
     private float animSpeed = 1.0f;
     private float lookSmoother = 3.0f;
 
@@ -288,5 +286,5 @@ public class CharacterControl : MonoBehaviour
 
             interact = true;
         }
-    }
+    }*/
 }

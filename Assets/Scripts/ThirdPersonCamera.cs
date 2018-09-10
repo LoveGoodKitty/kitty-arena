@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using GameClassLibrary;
+﻿using GameClassLibrary;
+using UnityEngine;
 
 public class ThirdPersonCamera : MonoBehaviour
 {
@@ -39,19 +38,32 @@ public class ThirdPersonCamera : MonoBehaviour
 
         // smooth camera causes problems with player movement commands making character go back and forth... 
         // adjust target position for camera lag?
-        var smoothCamera = true;
+        var smoothCamera = false;
         if (smoothCamera)
         {
             transform.position = Vector3.Lerp(positionNow, targetPosition, Time.deltaTime * GameStatic.CameraFollowSpeed);
             lookTarget = Vector3.Lerp(lookTarget, lookAt, Time.deltaTime * GameStatic.CameraFollowSpeed);
+            transform.LookAt(lookTarget);
         }
         else
         {
             transform.position = targetPosition;
             lookTarget = lookAt;
+            transform.LookAt(lookTarget);
         }
 
-        transform.LookAt(lookTarget);
+        /*
+        var cursor = GameStatic.CursorTarget;
+        var onTopOfPlayer = target.transform.position + new Vector3(0.0f, 2.0f, 0.0f);
+        var direction = Vector3.Normalize(cursor - onTopOfPlayer);
+        var cameraPosition = onTopOfPlayer - (direction * zoom);
+
+        transform.position = Vector3.Lerp(positionNow, cameraPosition, Time.deltaTime * GameStatic.CameraFollowSpeed);
+        lookTarget = Vector3.Lerp(lookTarget, cursor, Time.deltaTime * GameStatic.CameraFollowSpeed);
+
+        //transform.position = cameraPosition;
+        transform.LookAt(lookTarget); */
+
     }
 
     void FixedUpdate()

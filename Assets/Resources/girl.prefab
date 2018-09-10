@@ -381,7 +381,7 @@ GameObject:
   - component: {fileID: 4736501292513668}
   - component: {fileID: 95396420120519706}
   m_Layer: 0
-  m_Name: GirlPrefab
+  m_Name: girl
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
